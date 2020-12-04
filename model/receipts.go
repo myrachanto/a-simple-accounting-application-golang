@@ -13,12 +13,32 @@ type Receipt struct {
 	CustomerID uint `json:"customerid"`
 	Customer Customer  `json:"customer"`
 	Invoice []Invoice `gorm:"many2many:receipt_invoices"`
-	Paymentform Paymentform `gorm:"not null"`
+	Paymentform []Paymentform `gorm:"many2many:receipt_paymentforms"`
 	Type string `json:"type"`
 	ClearanceDate time.Time `json:"clearancedate"`
 	Amount float64 `json:"amount"`
 	Status string `json:"status"`
-	gorm.Model
+	gorm.Model 
+}
+//ReceiptReport ...
+type ReceiptReport struct {
+	All []Receipt `json:"all"`
+	ClearedRecipts SalesModule `json:"cleared"`
+	PendingRecipts SalesModule `json:"pending"`
+	CanceledRecipts SalesModule `json:"canceled"`
+}
+//ReceiptView ..structure to gather dat for receipts view
+type ReceiptView struct {
+	Code string `json:"code"`
+	Customers []Customer `json:"customers"`
+	Paymentform []Paymentform `json:"paymentforms"`
+}
+//ReceiptOptions receipts view analysis
+type ReceiptOptions struct {
+	AllRecipts []Receipt `json:"allreceipts"`
+	ClearedRecipts []Receipt `json:"cleared"`
+	PendingRecipts []Receipt `json:"pending"`
+	CanceledRecipts []Receipt `json:"canceled"`
 }
 //Validate ..
 func (receipts Receipt) Validate() *httperors.HttpError{ 

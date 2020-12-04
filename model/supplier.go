@@ -49,7 +49,7 @@ type SupplierToken struct {
 }
 //Supplierdetails details
 type Supplierdetails struct {
-	Supplier Supplier `json:"supplier"`
+	Supplier *Supplier `json:"supplier"`
 	SInvoices []SInvoice `json:"sinvoices"`
 	Grns []SInvoice `json:"grns"`
 }

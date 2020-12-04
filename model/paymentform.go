@@ -1,5 +1,5 @@
 package model
-
+ 
 import (
   "gorm.io/gorm"
 	"github.com/myrachanto/accounting/httperors"
@@ -8,8 +8,11 @@ import (
 type Paymentform struct {
 	Name string `gorm:"not null" json:"name"` 
 	Title string `gorm:"not null" json:"title"`
-	Description string `gorm:"not null" json:"description"`
+	Description string `gorm:"not null" json:"description"` 
 	ReceiptID uint `gorm:"not null" json:"receiptid"`
+	Receipt []Receipt `gorm:"many2many:paymentform_receipts"`
+	Payment []Payment `gorm:"many2many:paymentform_payments"`
+	Amount float64  `json:"amount"`
 	gorm.Model
 }
 //Validate ...

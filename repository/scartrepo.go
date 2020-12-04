@@ -19,7 +19,7 @@ type STotals struct {
 ///curtesy to gorm
 type scartrepo struct{}
 //////////////
-////////////TODO user id///////////
+////////////TODO user id/////////// 
 /////////////////////////////////////////
 func (scartRepo scartrepo) Create(scart *model.Scart) (string, *httperors.HttpError) {
 	GormDB, err1 :=IndexRepo.Getconnected()
@@ -177,7 +177,7 @@ func (scartRepo scartrepo) Update(qty float64, name,code string) (string, *httpe
 	// 	return "", httperors.NewNotFoundError("invoice with that id does not exists!")
 	// }
 	
-	ok := Invoicerepo.InvoiceExistByCode(code)
+	ok := SInvoicerepo.SInvoiceExistByCode(code)
 	if ok == false {
 		return "", httperors.NewNotFoundError("Something went wrong with the invoice crediting!")
 	}

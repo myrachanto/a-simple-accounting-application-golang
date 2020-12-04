@@ -121,7 +121,7 @@ func (expencetrasanRepo expencetrasanrepo) Getexpencestrans(code string) (t []mo
 } 
 
 func (expencetrasanRepo expencetrasanrepo) UpdateTrans(name,code string) (string, *httperors.HttpError) {
-	ok := Invoicerepo.InvoiceExistByCode(code)
+	ok := SInvoicerepo.SInvoiceExistByCode(code)
 	if ok == false {
 		return "", httperors.NewNotFoundError("Something went wrong with the Expence crediting!")
 	}

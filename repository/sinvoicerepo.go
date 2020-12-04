@@ -20,16 +20,16 @@ var (
 ///curtesy to gorm
 type sInvoicerepo struct{}
 
-func (sInvoiceRepo sInvoicerepo) Create(sInvoice *model.SInvoice) (*model.SInvoice, *httperors.HttpError) {
+func (sInvoiceRepo sInvoicerepo) Create(sInvoice *model.SInvoice) (string, *httperors.HttpError) {
 	code := sInvoice.Code
-	t, r := Scartrepo.SumTotal(code)
+	t, r := Scartrepo.SumTotal(code) 
 	if r != nil {
-		return nil, r
+		return "", r
 	}
 
 	exps, er := Expencetrasanrepo.GetExpencesByCode(code)
 	if er != nil {
-		return nil, er
+		return "", er
 	}
 	var ep float64 = 0
 	for _, exp := range exps {
@@ -57,7 +57,11 @@ func (sInvoiceRepo sInvoicerepo) Create(sInvoice *model.SInvoice) (*model.SInvoi
 
 	transactions, e := Scartrepo.ScarttoTransaction(code)
 	if e != nil {
-		return nil, e
+		return "", e
+	}
+	if sInvoice.Suppliername == "undefined" && sInvoice.Suppliername == "" {
+		return "", httperors.NewNotFoundError("Please choose a Supplier name!")
+		
 	}
 	if sInvoice.Suppliername == "undefined" {
 		cart := Scartrepo.Getsupplierwithcode(code)
@@ -67,12 +71,12 @@ func (sInvoiceRepo sInvoicerepo) Create(sInvoice *model.SInvoice) (*model.SInvoi
 	creditTransaction := model.CreditTransaction{Code: code, Description: "Goods Bought", Suppliername: suppliername, Amount: -t.Total}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-		return nil, err1
+		return "", err1
 	}
 
 	carts, err7 := Scartrepo.Updateproductqty(code)
 	if err7 != nil {
-		return nil, err7
+		return "", err7
 	}
 	////////////begin transaction/////////////////////
 	GormDB.Transaction(func(tx *gorm.DB) error {
@@ -110,7 +114,7 @@ func (sInvoiceRepo sInvoicerepo) Create(sInvoice *model.SInvoice) (*model.SInvoi
 	})
 	Scartrepo.DeleteAll(code)
 	IndexRepo.DbClose(GormDB)
-	return sInvoice, nil
+	return "Invoice created successifully", nil
 }
 
 func (sInvoiceRepo sInvoicerepo) updatedsInvoice(code, status string) *httperors.HttpError {
@@ -172,7 +176,7 @@ func (sInvoiceRepo sInvoicerepo) View() (*model.Sinvoiceoptions, *httperors.Http
 	return SIOptions, nil
 }
 func (sInvoiceRepo sInvoicerepo) GetOne(code string) (*model.SInvoiceView, *httperors.HttpError) {
-	ok := sInvoiceRepo.sInvoiceExistByCode(code)
+	ok := sInvoiceRepo.SInvoiceExistByCode(code)
 	if !ok {
 		return nil, httperors.NewNotFoundError("sInvoice with that code does not exists!")
 	}
@@ -218,7 +222,7 @@ func (sInvoiceRepo sInvoicerepo) All() (t []model.SInvoice, r *httperors.HttpErr
 	return t, nil
 
 }
-func (sInvoiceRepo sInvoicerepo) sInvoiceBysupplier(name string) (t []model.SInvoice, r *httperors.HttpError) {
+func (sInvoiceRepo sInvoicerepo) SInvoiceBysupplier(name string) (t []model.SInvoice, r *httperors.HttpError) {
 
 	sInvoice := model.SInvoice{}
 	GormDB, err1 := IndexRepo.Getconnected()
@@ -261,7 +265,7 @@ func (sInvoiceRepo sInvoicerepo) SuppliersInvoice(name string) (t []model.SInvoi
 	if err1 != nil {
 		return nil, err1
 	}
-	GormDB.Model(&sInvoice).Where("suppliername = ? AND status = ?", name, "sInvoice").Find(&t)
+	GormDB.Model(&sInvoice).Where("suppliername = ? AND status = ?", name, "invoice").Find(&t)
 	IndexRepo.DbClose(GormDB)
 	return t, nil
 
@@ -297,7 +301,7 @@ func (sInvoiceRepo sInvoicerepo) GetCreditNotes(search string) ([]model.SInvoice
 func (sInvoiceRepo sInvoicerepo) Update(code string) (string, *httperors.HttpError) {
 
 	sInvoice := model.SInvoice{}
-	transactions := []model.Transaction{}
+	transactions := []model.STransaction{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return "", err1
@@ -336,7 +340,7 @@ func (sInvoiceRepo sInvoicerepo) Update(code string) (string, *httperors.HttpErr
 	sInvoice.Subtotal = (total - tax + discount)
 	sInvoice.Total = total
 	sInvoice.Cn = true
-	trans := model.Transaction{}
+	trans := model.STransaction{}
 	////////////begin transaction/////////////////////
 	GormDB.Transaction(func(tx *gorm.DB) error {
 
@@ -374,7 +378,7 @@ func (sInvoiceRepo sInvoicerepo) Update(code string) (string, *httperors.HttpErr
 	return "item credited successifully", nil
 }
 func (sInvoiceRepo sInvoicerepo) Delete(id int) (*httperors.HttpSuccess, *httperors.HttpError) {
-	ok := sInvoiceRepo.sInvoiceUserExistByid(id)
+	ok := sInvoiceRepo.SInvoiceUserExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("sInvoice with that id does not exists!")
 	}
@@ -388,7 +392,7 @@ func (sInvoiceRepo sInvoicerepo) Delete(id int) (*httperors.HttpSuccess, *httper
 	IndexRepo.DbClose(GormDB)
 	return httperors.NewSuccessMessage("deleted successfully"), nil
 }
-func (sInvoiceRepo sInvoicerepo) sInvoiceUserExistByid(id int) bool {
+func (sInvoiceRepo sInvoicerepo) SInvoiceUserExistByid(id int) bool {
 	sInvoice := model.SInvoice{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -402,7 +406,7 @@ func (sInvoiceRepo sInvoicerepo) sInvoiceUserExistByid(id int) bool {
 	return true
 
 }
-func (sInvoiceRepo sInvoicerepo) sInvoiceExistByCode(code string) bool {
+func (sInvoiceRepo sInvoicerepo) SInvoiceExistByCode(code string) bool {
 	sInvoice := model.SInvoice{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {

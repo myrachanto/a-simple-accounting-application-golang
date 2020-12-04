@@ -180,17 +180,24 @@ func StoreAPI(){
 	///////////////////finance module///////////////////////////////////////
 	///////////payments/////////////////////////////////////////////////////
 	JWTgroup.POST("payments", controllers.PaymentController.Create)
+	JWTgroup.GET("payments/view", controllers.PaymentController.View)
 	JWTgroup.GET("payments", controllers.PaymentController.GetAll)
+	JWTgroup.GET("payments/report", controllers.PaymentController.ViewReport)
 	JWTgroup.GET("payments/:id", controllers.PaymentController.GetOne)
+	JWTgroup.POST("payments/transaction", controllers.PaymentController.Updatepayments)
 	// JWTgroup.PUT("payments/:id", controllers.PaymentController.Update)
 	// JWTgroup.DELETE("payments/:id", controllers.PaymentController.Delete)
 	///////////receipts/////////////////////////////////////////////////////
 	JWTgroup.POST("receipts", controllers.ReceiptController.Create)
+	JWTgroup.GET("receipts/view", controllers.ReceiptController.View)
 	JWTgroup.GET("receipts", controllers.ReceiptController.GetAll)
+	JWTgroup.GET("receipts/report", controllers.ReceiptController.ViewReport)
 	JWTgroup.GET("receipts/:id", controllers.ReceiptController.GetOne)
+	JWTgroup.POST("receipts/transaction", controllers.ReceiptController.UpdateReceipts)
 	// JWTgroup.PUT("receipts/:id", controllers.ReceiptController.Update)
 	// JWTgroup.DELETE("receipts/:id", controllers.ReceiptController.Delete)
 	///////////payrecpt/////////////////////////////////////////////////////
+	
 	JWTgroup.GET("Viewspayrecpt", controllers.PayrectrasanController.View)
 	JWTgroup.POST("payrecpt", controllers.PayrectrasanController.Create)
 	JWTgroup.GET("payrecpt", controllers.PayrectrasanController.GetAll)

@@ -16,12 +16,12 @@ type invoiceservice struct {
 	
 }
 
-func (service invoiceservice) Create(invoice *model.Invoice) (*model.Invoice, *httperors.HttpError) {
-	invoice, err1 := r.Invoicerepo.Create(invoice)
+func (service invoiceservice) Create(invoice *model.Invoice) (string, *httperors.HttpError) {
+	invoic, err1 := r.Invoicerepo.Create(invoice)
 	if err1 != nil {
-		return nil, err1
+		return "", err1
 	}
-	 return invoice, nil
+	 return invoic, nil
 
 }
 func (service invoiceservice) View() (*model.Cinvoiceoptions, *httperors.HttpError) {

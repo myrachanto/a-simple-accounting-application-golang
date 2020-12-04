@@ -18,14 +18,14 @@ var (
 ///curtesy to gorm
 type invoicerepo struct{}
 
-func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (*model.Invoice, *httperors.HttpError) {
+func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (string, *httperors.HttpError) {
 	code := invoice.Code
 	t,r := Cartrepo.SumTotal(code);if r != nil {
-		return nil, r
+		return "", r
 	}
 	
 	exps,er := Expencetrasanrepo.GetExpencesByCode(code);if er != nil {
-		return nil, er
+		return "", er
 	}
 	var ep float64 = 0
 	for _, exp := range exps{
@@ -52,7 +52,12 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (*model.Invoice, *
 	invoice.Description = "Sale of goods and services"
 	
 	transactions,e := Cartrepo.CarttoTransaction(code);if e != nil {
-		return nil, e
+		return "", e
+	}
+	
+	if invoice.Customername == "undefined" && invoice.Customername == "" {
+		return "", httperors.NewNotFoundError("Please choose a Customer name!")
+		
 	}
 	if invoice.Customername == "undefined"{
 		cart := Cartrepo.Getcustomerwithcode(code)
@@ -62,12 +67,12 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (*model.Invoice, *
 	debtTransaction := model.DebtTransaction{Code: code, Description: "Goods sold", Customername:customername, Amount: t.Total}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-		return nil, err1
+		return "", err1
 	}
 
 	carts, err7 := Cartrepo.Updateproductqty(code)
 	if err7 != nil {
-		return nil, err7
+		return "", err7
 	}
 	////////////begin transaction/////////////////////
 	GormDB.Transaction(func(tx *gorm.DB) error {
@@ -105,7 +110,7 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (*model.Invoice, *
 		})
 	Cartrepo.DeleteAll(code)
 	IndexRepo.DbClose(GormDB)
-	return invoice, nil
+	return "invoice created succesifully", nil
 }
 
 func (invoiceRepo invoicerepo) updatedinvoice(code, status string)  *httperors.HttpError{

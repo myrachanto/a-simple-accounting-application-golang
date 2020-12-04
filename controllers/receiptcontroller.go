@@ -9,11 +9,14 @@ import(
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/service"
-	"github.com/myrachanto/accounting/support"
 )
- 
+ //ReceiptController ...
 var ( 
 	ReceiptController receiptController =  receiptController{}
+)
+const (
+	layoutISO = "2006-01-02"
+	layoutUS  = "January 2, 2006"
 )
 type receiptController struct{ }
 /////////controllers/////////////////
@@ -23,7 +26,9 @@ func (controller receiptController) Create(c echo.Context) error {
 	receipt.Status = c.FormValue("status")
 	receipt.Description = c.FormValue("description")
 	receipt.Type = c.FormValue("type")
+	receipt.Code = c.FormValue("code")
 	d := c.FormValue("clearancedate")
+	fmt.Println(d)
 
 	s, err := strconv.ParseFloat(c.FormValue("amount"), 64)
 	if err != nil {
@@ -31,8 +36,7 @@ func (controller receiptController) Create(c echo.Context) error {
 		return c.JSON(httperror.Code, httperror)
 	}
 	receipt.Amount = s
-layout := "01/02/2006"
-	t, er := time.Parse(layout, d)
+  t, er := time.Parse(layoutISO, d)
 	if er != nil {
 		httperror := httperors.NewBadRequestError("Invalid Date")
 		return c.JSON(httperror.Code, httperror)
@@ -44,23 +48,34 @@ layout := "01/02/2006"
 		}
 	return c.JSON(http.StatusCreated, createdreceipt)
 }
-func (controller receiptController) GetAll(c echo.Context) error {
-	receipts := []model.Receipt{}
-	column := string(c.QueryParam("column"))
-	direction := string(c.QueryParam("direction"))
-	search_column := string(c.QueryParam("search_column"))
-	search_operator := string(c.QueryParam("search_operator"))
-	search_query_1 := string(c.QueryParam("search_query_1"))
-	search_query_2 := string(c.QueryParam("search_query_2"))
-	per_page, err := strconv.Atoi(c.QueryParam("per_page"))
-	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid per number")
-		return c.JSON(httperror.Code, httperror)
+func (controller receiptController) UpdateReceipts(c echo.Context) error {
+		
+	code := c.FormValue("code")
+	status := c.FormValue("status")
+	updatedcart, problem := service.Receiptservice.UpdateReceipts(code,status)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
 	}
-	fmt.Println("------------------------")
-	search := &support.Search{Column:column, Direction:direction,Search_column:search_column,Search_operator:search_operator,Search_query_1:search_query_1,Search_query_2:search_query_2,Per_page:per_page}
+	return c.JSON(http.StatusOK, updatedcart)
+}
+
+func (controller receiptController) ViewReport(c echo.Context) error {
+	options, problem := service.Receiptservice.ViewReport()
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, options)	
+}
+func (controller receiptController) View(c echo.Context) error {
+	code, problem := service.Receiptservice.View()
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, code)	
+}
+func (controller receiptController) GetAll(c echo.Context) error {
 	
-	receipts, err3 := service.Receiptservice.GetAll(receipts,search)
+	receipts, err3 := service.Receiptservice.GetAll()
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}

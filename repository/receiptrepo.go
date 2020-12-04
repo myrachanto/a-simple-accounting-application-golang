@@ -3,6 +3,8 @@ package repository
 import (
 	"fmt"
 	"strings"
+	"strconv"
+	"gorm.io/gorm"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/support"
@@ -19,6 +21,25 @@ func (receiptRepo receiptrepo) Create(receipt *model.Receipt) (*model.Receipt, *
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
+	}
+	paymentform := model.Paymentform{}
+	p := model.Paymentform{}
+	if (receipt.Status == "cleared"){
+		////////////begin transaction/////////////////////
+	GormDB.Transaction(func(tx *gorm.DB) error {
+
+		fmt.Println("level 1")
+		tx.Create(&receipt)
+		tx.Transaction(func(tx2 *gorm.DB) error {
+			fmt.Println("level 2")
+			tx2.Model(&paymentform).Where("name = ?", receipt.Paymentform).First(&p)
+			updatedamount := p.Amount + receipt.Amount 
+			tx2.Model(&paymentform).Where("name = ?", receipt.Paymentform).Update("amount", updatedamount)
+			return nil
+		})
+
+		return nil
+	})
 	}
 	GormDB.Create(&receipt)
 	IndexRepo.DbClose(GormDB)
@@ -40,14 +61,146 @@ func (receiptRepo receiptrepo) GetOne(id int) (*model.Receipt, *httperors.HttpEr
 	
 	return &receipt, nil
 }
+func (receiptRepo receiptrepo) UpdateReceipts(code,status string) (string, *httperors.HttpError) {
+	ok := Receiptrepo.ReceiptExistByCode(code)
+	if ok == false {
+		return "", httperors.NewNotFoundError("That receipt does not exist!")
+	}
+	r := model.Receipt{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	paymentform := model.Paymentform{}
+	p := model.Paymentform{}
+	if (r.Status == "cleared"){
+		////////////begin transaction/////////////////////
+	GormDB.Transaction(func(tx *gorm.DB) error {
 
-func (receiptRepo receiptrepo) GetAll(receipts []model.Receipt,search *support.Search) ([]model.Receipt, *httperors.HttpError) {
+		fmt.Println("level 1")
+		tx.Model(&r).Where("code = ?", code).Update("status",status)
+
+		tx.Transaction(func(tx2 *gorm.DB) error {
+			fmt.Println("level 2")
+			tx2.Model(&paymentform).Where("name = ?", r.Paymentform).First(&p)
+			updatedamount := p.Amount + r.Amount 
+			tx2.Model(&paymentform).Where("name = ?", r.Paymentform).Update("amount", updatedamount)
+			return nil
+		})
+
+		return nil
+	})
+	}
+	GormDB.Model(&r).Where("code = ?", code).Update("status",status)
 	
-	results, err1 := receiptRepo.Search(search, receipts)
+	IndexRepo.DbClose(GormDB)
+	return "Receipt updated succesifully", nil
+}
+func (receiptRepo receiptrepo) ViewReport() (*model.ReceiptReport, *httperors.HttpError) {
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	receipts := model.Receipt{}
+	all := []model.Receipt{}
+	cleared := []model.Receipt{}
+	pending := []model.Receipt{}
+	canceled := []model.Receipt{}
+	GormDB.Model(&receipts).Find(&all)
+	GormDB.Model(&receipts).Where("status = ?", "cancel").Find(&canceled)
+	GormDB.Model(&receipts).Where("status = ?", "pending").Find(&pending)
+	GormDB.Model(&receipts).Where("status = ?", "cleared").Find(&cleared)
+	var clear float64 = 0
+	for _,cl := range cleared {
+		clear += cl.Amount
+	}
+	var pend float64 = 0
+	for _,pen := range pending {
+		pend += pen.Amount
+	}
+	var can float64 = 0
+	for _,cn := range canceled {
+		can += cn.Amount
+	}
+	
+	z := model.ReceiptReport{}
+	z.All = all
+	z.ClearedRecipts.Name = "Cleared Receipts"
+	z.ClearedRecipts.Total = clear
+	z.ClearedRecipts.Description = "Total Amount Receipts cleared"
+	//////////////////////////////////////////////////////////////
+	z.PendingRecipts.Name = "Pending receipts"
+	z.PendingRecipts.Total = pend
+	z.PendingRecipts.Description = "Total Amount Receipts pending"
+	///////////////////////////////////////////////////////////////
+	z.CanceledRecipts.Name = "Cancelled receipts"
+	z.CanceledRecipts.Total = can
+	z.CanceledRecipts.Description = "Total Amount Receipts Cancelled"
+	
+	IndexRepo.DbClose(GormDB)
+	return &z, nil
+}
+func (receiptRepo receiptrepo) ReceiptExistByCode(code string) bool {
+	r := model.Receipt{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return false
+	}
+
+	res := GormDB.First(&r, "code =?", code)
+	if res.Error != nil {
+		return false
+	}
+	IndexRepo.DbClose(GormDB)
+	return true
+
+}
+func (receiptRepo receiptrepo) View() (*model.ReceiptView, *httperors.HttpError) {
+	r := &model.ReceiptView{}
+
+	customers,err1 := Customerrepo.All()
+	if err1 != nil {
+		return nil, httperors.NewNotFoundError("You got an error fetching customers")
+	}
+	paymentforms,err7 := Paymentformrepo.All()
+	if err7 != nil {
+		return nil, httperors.NewNotFoundError("You got an error fetching customers")
+	}
+	code,err4 := Receiptrepo.GeneCode()
+	if err4 != nil {
+		return nil, httperors.NewNotFoundError("You got an error fetching customers")
+	}
+	r.Code = code
+	r.Customers = customers
+	r.Paymentform = paymentforms
+	return r, nil
+} 
+func (receiptRepo receiptrepo) GetAll() (*model.ReceiptOptions, *httperors.HttpError) {
+	
+	receipts := model.Receipt{}
+	all := []model.Receipt{}
+	cleared := []model.Receipt{}
+	pending := []model.Receipt{}
+	canceled := []model.Receipt{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&receipts).Find(&all)
+	GormDB.Model(&receipts).Where("status = ?", "cancel").Find(&canceled)
+	GormDB.Model(&receipts).Where("status = ?", "pending").Find(&pending)
+	GormDB.Model(&receipts).Where("status = ?", "cleared").Find(&cleared)
 	if err1 != nil {
 			return nil, err1
 		}
-	return results, nil
+		
+	IndexRepo.DbClose(GormDB)
+	return &model.ReceiptOptions{
+		AllRecipts: all,
+		ClearedRecipts: cleared,
+		PendingRecipts: pending,
+		CanceledRecipts: canceled,
+	}, nil
 }
 
 func (receiptRepo receiptrepo) Update(id int, receipt *model.Receipt) (*model.Receipt, *httperors.HttpError) {
@@ -114,6 +267,24 @@ func (receiptRepo receiptrepo)receiptUserExistByid(id int) bool {
 	
 }
 
+func (receiptRepo receiptrepo)GeneCode() (string, *httperors.HttpError) {
+	r := model.Receipt{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	err := GormDB.Last(&r)
+	if err.Error != nil {
+		var c1 uint = 1
+		code := "ReceiptNo"+strconv.FormatUint(uint64(c1), 10)
+		return code, nil
+	 }
+	c1 := r.ID + 1
+	code := "ReceiptNo"+strconv.FormatUint(uint64(c1), 10)
+	IndexRepo.DbClose(GormDB)
+	return code, nil
+	
+}
 func (receiptRepo receiptrepo) Search(Ser *support.Search, receipts []model.Receipt)([]model.Receipt, *httperors.HttpError){
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -165,9 +336,16 @@ func (receiptRepo receiptrepo) Search(Ser *support.Search, receipts []model.Rece
 		
 	// break;
 	case "like":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column+" "+Ser.Direction).Find(&receipts);
-		
-	break;
+		// fmt.Println(Ser.Search_query_1)
+		if Ser.Search_query_1 == "all" {
+			//db.Order("name DESC")
+			GormDB.Order(Ser.Column + " " + Ser.Direction).Find(&receipts)
+
+		} else {
+
+			GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column + " " + Ser.Direction).Find(&receipts)
+		}
+		break
 	case "between":
 		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&users)
 		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);

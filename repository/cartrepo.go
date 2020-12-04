@@ -75,10 +75,10 @@ func (cartRepo cartrepo) Create(cart *model.Cart) (string, *httperors.HttpError)
 	if ok != true {
 		return "", httperors.NewNotFoundError("Please select the same customer in this invoice!")
 	}
-	// product := Productrepo.Productqty(name)
-	// if cart.Quantity > product.Quantity {
-	// 	return "", httperors.NewNotFoundError("please that more than we have in stock")
-	// }
+	product := Productrepo.Productqty(name)
+	if cart.Quantity > product.Quantity {
+		return "", httperors.NewNotFoundError("please that more than we have in stock")
+	}
 	GormDB.Create(&cart)
 	IndexRepo.DbClose(GormDB)
 	return "Item added successifully to the cart", nil

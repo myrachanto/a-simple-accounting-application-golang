@@ -16,12 +16,12 @@ type sInvoiceservice struct {
 	
 }
 
-func (service sInvoiceservice) Create(sInvoice *model.SInvoice) (*model.SInvoice, *httperors.HttpError) {
-	sInvoice, err1 := r.SInvoicerepo.Create(sInvoice)
+func (service sInvoiceservice) Create(sInvoice *model.SInvoice) (string, *httperors.HttpError) {
+	sInvoic, err1 := r.SInvoicerepo.Create(sInvoice)
 	if err1 != nil {
-		return nil, err1
+		return "", err1
 	}
-	 return sInvoice, nil
+	 return sInvoic, nil
 
 }
 func (service sInvoiceservice) View() (*model.Sinvoiceoptions, *httperors.HttpError) {

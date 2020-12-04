@@ -128,17 +128,11 @@ func (supplierRepo supplierrepo) Forgot(email string) (string, *httperors.HttpEr
 	return "Email sent!", nil
 }
 func (supplierRepo supplierrepo) GetOne(id int) (*model.Supplierdetails, *httperors.HttpError) {
-	ok := supplierRepo.supplierExistByid(id)
+	ok := supplierRepo.SupplierExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("supplier with that id does not exists!")
 	} 
-	supplier := model.Supplier{}
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1 
-	}
-	GormDB.Model(&supplier).Where("id = ?", id).First(&supplier)
-	IndexRepo.DbClose(GormDB)
+	supplier := Supplierrepo.Getsupplierbyid(id)
 	invoices, e := SInvoicerepo.SuppliersInvoice(supplier.Name)
 	if e != nil {
 		return nil, e
@@ -208,7 +202,7 @@ func (supplierRepo supplierrepo) AllDebts() (t []model.DebtTransaction, r *httpe
 // }
 
 func (supplierRepo supplierrepo) Update(id int, supplier *model.Supplier) (*model.Supplier, *httperors.HttpError) {
-	ok := supplierRepo.supplierExistByid(id)
+	ok := supplierRepo.SupplierExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("supplier with that id does not exists!")
 	}
@@ -245,7 +239,7 @@ func (supplierRepo supplierrepo) Update(id int, supplier *model.Supplier) (*mode
 	return supplier, nil
 }
 func (supplierRepo supplierrepo) Delete(id int) (*httperors.HttpSuccess, *httperors.HttpError) {
-	ok := supplierRepo.supplierExistByid(id)
+	ok := supplierRepo.SupplierExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("supplier with that id does not exists!")
 	}
@@ -280,6 +274,20 @@ func (supplierRepo supplierrepo)Getsupplier(name string) *model.Supplier {
 		return nil
 	}
 	GormDB.Where("name = ? ", name).First(&supplier)
+	if supplier.Name == "" {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &supplier
+	
+}
+func (supplierRepo supplierrepo)Getsupplierbyid(id int) *model.Supplier {
+	supplier := model.Supplier{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("id = ? ", id).First(&supplier)
 	if supplier.Name == "" {
 	   return nil
 	}
@@ -337,7 +345,7 @@ func (supplierRepo supplierrepo)supplierExist(email string) bool {
 	return true
 	
 }
-func (supplierRepo supplierrepo)supplierExistByid(id int) bool {
+func (supplierRepo supplierrepo)SupplierExistByid(id int) bool {
 	supplier := model.Supplier{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {

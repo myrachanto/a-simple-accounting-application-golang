@@ -1,37 +1,54 @@
 package model
 
 import (
-  "gorm.io/gorm"
+	"gorm.io/gorm"
+	"time"
 	"github.com/myrachanto/accounting/httperors"
 )
-//Payment ..capturing all type of payments
+//Payment ..
 type Payment struct {
-	Name string  `json:"name"`
-	Description string `json:"description"`
-	Company string ` json:"company"`
-	CustomerID uint `gorm:"not null" json:"customerid"`
-	LiatranID uint `gorm:"not null" json:"liatransid"`
-	Customer Customer `gorm:"not null" json:"customer"`
-	InvoiceID  uint `gorm:"not null" json:"invoiceid"`
-	PaymentMethod string `json:"paymentmethod"`
-	Status string `json:"status"`
-	Asstrans []Asstrans `gorm:"not null" json:"asstrans"`
+	SupplierName string `json:"suppliername"`
+	Description string `json:"description"` 
+	Code string `json:"code"`
+	SupplierID uint `json:"supplierrid"`
+	Supplier Supplier  `json:"supplier"`
 	SInvoice []SInvoice `gorm:"many2many:payment_sinvoices"`
-	gorm.Model
+	Paymentform []Paymentform `gorm:"many2many:payment_paymentforms"`
+	Liability []Liability `gorm:"many2many:payment_liabiltys"`
+	Payment []Payment `gorm:"many2many:payment_liatrans"`
+	Type string `json:"type"`
+	ClearanceDate time.Time `json:"clearancedate"`
+	Amount float64 `json:"amount"`
+	Status string `json:"status"`
+	gorm.Model 
 }
-//Validate ...
-func (payment Payment) Validate() *httperors.HttpError{ 
-	if payment.Name == "" && len(payment.Name) > 3 {
-		return httperors.NewNotFoundError("Invalid Name")
+//PaymentReport ...
+type PaymentReport struct {
+	All []Payment `json:"all"`
+	ClearedPayments SalesModule `json:"cleared"`
+	PendingPayments SalesModule `json:"pending"`
+	CanceledPayments SalesModule `json:"canceled"`
+}
+//PaymentView ..structure to gather dat for payments view
+type PaymentView struct {
+	Code string `json:"code"`
+	Suppliers []Supplier `json:"suppliers"`
+	Paymentform []Paymentform `json:"paymentforms"`
+}
+//PaymentOptions payments view analysis
+type PaymentOptions struct {
+	AllPayments []Payment `json:"allpayments"`
+	ClearedPayments []Payment `json:"cleared"`
+	PendingPayments []Payment `json:"pending"`
+	CanceledPayments []Payment `json:"canceled"`
+}
+//Validate ..
+func (payments Payment) Validate() *httperors.HttpError{ 
+	if payments.SupplierName == "" && len(payments.SupplierName) > 3 {
+		return httperors.NewNotFoundError("Invalid supplier Name")
 	}
-	if payment.Description == "" && len(payment.Description) > 3 {
+	if payments.Description == "" && len(payments.Description) > 3 {
 		return httperors.NewNotFoundError("Invalid description")
-	}
-	if payment.CustomerID == 0 {
-		return httperors.NewNotFoundError("Invalid customer")
-	}
-	if payment.PaymentMethod == "" {
-		return httperors.NewNotFoundError("Invalid Payment method")
 	}
 	return nil
 }

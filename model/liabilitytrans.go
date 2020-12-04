@@ -9,7 +9,7 @@ type Liatran struct {
 	LiabilityID uint  `gorm:"not null" json:"liabilityid"`
 	Title string `gorm:"not null" json:"title"`
 	Description string `gorm:"not null" json:"description"`
-	Payment []Payment `gorm:"not null" json:"payments"`
+	Payment []Payment `gorm:"many2many:liatran_payments"`
 	Interest float64 `gorm:"not null" json:"interest"`
 	Amountpaid float64  `gorm:"not null" json:"amountpaid"`
 	Balance float64 `gorm:"not null" json:"balance"`

@@ -4,47 +4,74 @@ import(
 	"fmt"
 	"strconv"	
 	"net/http"
+	"time"
 	"github.com/labstack/echo"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/service"
-	"github.com/myrachanto/accounting/support"
 )
- 
-var (
-	PaymentController paymentController = paymentController{}
+ //PaymentController ...
+var ( 
+	PaymentController paymentController =  paymentController{}
 )
 type paymentController struct{ }
 /////////controllers/////////////////
 func (controller paymentController) Create(c echo.Context) error {
 	payment := &model.Payment{}
-	if err := c.Bind(payment); err != nil {
-		httperror := httperors.NewBadRequestError("Invalid json body")
+	payment.SupplierName = c.FormValue("suppliername")
+	payment.Status = c.FormValue("status")
+	payment.Description = c.FormValue("description")
+	payment.Type = c.FormValue("type")
+	payment.Code = c.FormValue("code")
+	d := c.FormValue("clearancedate")
+	fmt.Println(d)
+
+	s, err := strconv.ParseFloat(c.FormValue("amount"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid selling price")
 		return c.JSON(httperror.Code, httperror)
-	}	
-	createdpayment, err1 := service.Paymentservice.Create(payment)
-	if err1 != nil {
-		return c.JSON(err1.Code, err1)
 	}
+	payment.Amount = s
+  t, er := time.Parse(layoutISO, d)
+	if er != nil {
+		httperror := httperors.NewBadRequestError("Invalid Date")
+		return c.JSON(httperror.Code, httperror)
+	}
+	payment.ClearanceDate = t
+		createdpayment, err1 := service.Paymentservice.Create(payment)
+		if err1 != nil {
+			return c.JSON(err1.Code, err1)
+		}
 	return c.JSON(http.StatusCreated, createdpayment)
 }
-func (controller paymentController) GetAll(c echo.Context) error {
-	payments := []model.Payment{}
-	column := string(c.QueryParam("column"))
-	direction := string(c.QueryParam("direction"))
-	search_column := string(c.QueryParam("search_column"))
-	search_operator := string(c.QueryParam("search_operator"))
-	search_query_1 := string(c.QueryParam("search_query_1"))
-	search_query_2 := string(c.QueryParam("search_query_2"))
-	per_page, err := strconv.Atoi(c.QueryParam("per_page"))
-	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid per number")
-		return c.JSON(httperror.Code, httperror)
+
+func (controller paymentController) ViewReport(c echo.Context) error {
+	options, problem := service.Paymentservice.ViewReport()
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
 	}
-	fmt.Println("------------------------")
-	search := &support.Search{Column:column, Direction:direction,Search_column:search_column,Search_operator:search_operator,Search_query_1:search_query_1,Search_query_2:search_query_2,Per_page:per_page}
+	return c.JSON(http.StatusOK, options)	
+}
+func (controller paymentController) Updatepayments(c echo.Context) error {
+		
+	code := c.FormValue("code")
+	status := c.FormValue("status")
+	updatedcart, problem := service.Paymentservice.Updatepayments(code,status)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, updatedcart)
+}
+func (controller paymentController) View(c echo.Context) error {
+	code, problem := service.Paymentservice.View()
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, code)	
+}
+func (controller paymentController) GetAll(c echo.Context) error {
 	
-	payments, err3 := service.Paymentservice.GetAll(payments,search)
+	payments, err3 := service.Paymentservice.GetAll()
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}
