@@ -27,6 +27,7 @@ func (controller supplierController) Create(c echo.Context) error {
 	supplier.Address = c.FormValue("address")
 	supplier.Email = c.FormValue("email")
 	supplier.Password = c.FormValue("password")
+	supplier.Usercode = c.FormValue("usercode")
 
 	   pic, err2 := c.FormFile("picture")
 	//    fmt.Println(pic.Filename)

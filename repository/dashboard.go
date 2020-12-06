@@ -23,81 +23,117 @@ func (dashboardRepo dashboardrepo) View()(*model.Dashboard, *httperors.HttpError
 		log.Fatal("Error loading .env file in routes")
 	}
 	//headers
-	Invoicename := os.Getenv("Invoicename")
-	Customername := os.Getenv("Customersname")
-	Username := os.Getenv("Usersname")
-	Categoryname := os.Getenv("Categoryname")
-	Majorcatname := os.Getenv("Majorcatname")
-	Productsname := os.Getenv("Productsname")
+	Salesname := os.Getenv("Salesname")
+	Purchasesname := os.Getenv("Purchasesname")
+	Paymentsname := os.Getenv("Paymentsname")
+	Receiptsname := os.Getenv("Receiptsname")
+	Expencesname := os.Getenv("Expencesname")
+	Customerssname := os.Getenv("Customerssname")
+	Suppliersname := os.Getenv("Suppliersname")
 	//staements
-	Invoicestatement := os.Getenv("Invoice")
-	Customerstatement := os.Getenv("Customers")
-	Userstatement := os.Getenv("Users")
-	Categorystatement := os.Getenv("Category")
-	Majorcatstatement := os.Getenv("Majorcat")
-	Productsstatement := os.Getenv("Products")
+	Sales := os.Getenv("Sales")
+	Purchases := os.Getenv("Purchases")
+	Payments := os.Getenv("Payments")
+	Receipts := os.Getenv("Receipts")
+	Expences := os.Getenv("Expences")
+	Customers := os.Getenv("Customers")
+	Suppliers := os.Getenv("Suppliers")
 	//icons
-	Invoicestatementicon := os.Getenv("Invoiceicon")
-	Customerstatementicon := os.Getenv("Customersicon")
-	Userstatementicon := os.Getenv("Usersicon")
-	Categorystatementicon := os.Getenv("Categoryicon")
-	Majorcatstatementicon := os.Getenv("Majorcaticon")
-	Productsstatementicon := os.Getenv("Productsicon")
+	Salesicon := os.Getenv("Salesicon")
+	Customersicon := os.Getenv("Customersicon")
+	Purchasesicon := os.Getenv("Purchasesicon")
+	Receiptsicon := os.Getenv("Receiptsicon")
+	Expencesicon := os.Getenv("Expencesicon")
+	Suppliersicon := os.Getenv("Suppliersicon")
+	Paymentsicon := os.Getenv("Paymentsicon")
 	dashboard := model.Dashboard{}
-	product,err1 := Productrepo.All()
+	customerss,err1 := Customerrepo.All()
 	if err1 != nil {
 		return nil, err1
 	}
-	category,err2 := Categoryrepo.All() 
+	supplierss,err2 := Supplierrepo.All() 
 	if err2 != nil {
 		return nil, err2
 	}
-	majorcat,err3 := Majorcategoryrepo.All()
+	saless,err3 := Transactionrepo.All()
 	if err3 != nil {
 		return nil, err3
 	}
-	customers,err4 := Customerrepo.All()
+	expencess,err4 := Expencetrasanrepo.All()
 	if err4 != nil {
 		return nil, err4
 	}
-	invoices,err5 := Invoicerepo.All()
+	purchasess,err5 := STransactionrepo.All()
 	if err5 != nil {
 		return nil, err5
 	}
 
-	users,err6 := Userrepo.All()
+	receiptss,err6 := Receiptrepo.All()
 	if err6 != nil {
 		return nil, err6
 	}
-	dashboard.Categorys.Name = Categoryname
-	dashboard.Categorys.Total = len(category)
-	dashboard.Categorys.Description = Categorystatement
-	dashboard.Categorys.Icon = Categorystatementicon
+
+	paymentss,err6 := Paymentrepo.All()
+	if err6 != nil {
+		return nil, err6
+	}
+	var sal float64 = 0
+	for _,s := range saless {
+		sal += s.Total
+	}
+	var pur float64 = 0
+	for _,p := range purchasess {
+		pur += p.Total
+	}
+
+	var pey float64 = 0
+	for _,pe := range paymentss {
+		pey += pe.Amount
+	}
+
+	var rec float64 = 0
+	for _,re := range receiptss {
+		rec += re.Amount
+	}
+
+	var ex float64 = 0
+	for _,x := range expencess {
+		ex += x.Amount
+	}
+	dashboard.Sales.Name = Salesname
+	dashboard.Sales.Total = sal
+	dashboard.Sales.Description = Sales
+	dashboard.Sales.Icon = Salesicon
 	/////////////products///////////
-	dashboard.Products.Name = Productsname
-	dashboard.Products.Total = len(product)
-	dashboard.Products.Description =Productsstatement
-	dashboard.Products.Icon = Productsstatementicon
+	dashboard.Purchases.Name = Purchasesname
+	dashboard.Purchases.Total = pur
+	dashboard.Purchases.Description =Purchases
+	dashboard.Purchases.Icon = Purchasesicon
 	/////////////products///////////
-	dashboard.Majorcategorys.Name = Majorcatname
-	dashboard.Majorcategorys.Total = len(majorcat)
-	dashboard.Majorcategorys.Description =Majorcatstatement
-	dashboard.Majorcategorys.Icon = Majorcatstatementicon
+	dashboard.Payments.Name = Paymentsname
+	dashboard.Payments.Total = pey
+	dashboard.Payments.Description =Payments
+	dashboard.Payments.Icon = Paymentsicon
 	/////////////products///////////
-	dashboard.Invoices.Name = Invoicename
-	dashboard.Invoices.Total = len(invoices)
-	dashboard.Invoices.Description =Invoicestatement
-	dashboard.Invoices.Icon = Invoicestatementicon
+	dashboard.Receipts.Name = Receiptsname
+	dashboard.Receipts.Total = rec
+	dashboard.Receipts.Description =Receipts
+	dashboard.Receipts.Icon = Receiptsicon
 	/////////////products///////////
-	dashboard.Users.Name = Username
-	dashboard.Users.Total = len(users)
-	dashboard.Users.Description =Userstatement
-	dashboard.Users.Icon = Userstatementicon
+	dashboard.Expences.Name = Expencesname
+	dashboard.Expences.Total = ex
+	dashboard.Expences.Description =Expences
+	dashboard.Expences.Icon = Expencesicon
 	/////////////products///////////
-	dashboard.Customers.Name = Customername
-	dashboard.Customers.Total = len(customers)
-	dashboard.Customers.Description =Customerstatement
-	dashboard.Customers.Icon = Customerstatementicon
+	dashboard.Customers.Name = Customerssname
+	dashboard.Customers.Total = float64(len(customerss))
+	dashboard.Customers.Description =Customers
+	dashboard.Customers.Icon = Customersicon
+
+	dashboard.Suppliers.Name = Suppliersname
+	dashboard.Suppliers.Total = float64(len(supplierss))
+	dashboard.Suppliers.Description =Suppliers
+	dashboard.Suppliers.Icon = Suppliersicon
 	return &dashboard, nil
 }
 func (dashboardRepo dashboardrepo) Email() (*model.Email, *httperors.HttpError) {

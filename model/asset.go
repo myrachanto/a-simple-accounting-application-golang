@@ -15,6 +15,7 @@ type Asset struct {
 	Depreciationrate float64 `gorm:"not null" json:"depreciationrate"`
 	ExpectedUsage float64 `gorm:"not null" json:"expected usage"`
 	Liscence string `gorm:"not null" json:"liscence"`
+	Usercode string `json:"usercode"`
 	gorm.Model
 }
 //Validate ...

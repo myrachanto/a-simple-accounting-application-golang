@@ -27,6 +27,8 @@ func (controller receiptController) Create(c echo.Context) error {
 	receipt.Description = c.FormValue("description")
 	receipt.Type = c.FormValue("type")
 	receipt.Code = c.FormValue("code")
+	receipt.Customercode = c.FormValue("customercode")
+	receipt.Usercode = c.FormValue("usercode")
 	d := c.FormValue("clearancedate")
 	fmt.Println(d)
 
@@ -58,6 +60,23 @@ func (controller receiptController) UpdateReceipts(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, updatedcart)
 }
+func (controller receiptController) AddReceiptTrans(c echo.Context) error {
+		
+	clientcode := c.FormValue("clientcode")
+	invoicecode := c.FormValue("invoicecode")
+	usercode := c.FormValue("usercode")
+	receiptcode := c.FormValue("receiptcode")
+	amount, err := strconv.ParseFloat(c.FormValue("amount"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid amount")
+		return c.JSON(httperror.Code, httperror)
+	}
+	updatedcart, problem := service.Receiptservice.AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode,amount)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, updatedcart)
+}
 
 func (controller receiptController) ViewReport(c echo.Context) error {
 	options, problem := service.Receiptservice.ViewReport()
@@ -65,6 +84,22 @@ func (controller receiptController) ViewReport(c echo.Context) error {
 		return c.JSON(problem.Code, problem)
 	}
 	return c.JSON(http.StatusOK, options)	
+}
+
+func (controller receiptController) ViewCleared(c echo.Context) error {
+	options, problem := service.Receiptservice.ViewCleared()
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, options)	
+}
+func (controller receiptController) ViewInvoices(c echo.Context) error {
+	customercode := c.Param("customercode")
+	invoices, problem := service.Receiptservice.ViewInvoices(customercode)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, invoices)	
 }
 func (controller receiptController) View(c echo.Context) error {
 	code, problem := service.Receiptservice.View()

@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"strings"
+	"strconv"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/support"
@@ -28,6 +29,12 @@ func (productRepo productrepo) Create(product *model.Product) (*model.Product, *
 		return nil, httperors.NewNotFoundError("category with that name does not exists!")
 	}
 	product.Majorcategory = cat.Majorcategory 
+
+	code, x := Paymentrepo.GeneCode()
+	if x != nil {
+		return nil, x
+	}
+	product.Productcode = code
 	GormDB.Create(&product)
 	IndexRepo.DbClose(GormDB)
 	return product, nil
@@ -69,6 +76,25 @@ func (productRepo productrepo) All() (t []model.Product, r *httperors.HttpError)
 	IndexRepo.DbClose(GormDB)
 	return t, nil
 
+}
+
+func (productRepo productrepo)GeneCode() (string, *httperors.HttpError) {
+	product := model.Product{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	err := GormDB.Last(&product)
+	if err.Error != nil {
+		var c1 uint = 1
+		code := "ProductCode"+strconv.FormatUint(uint64(c1), 10)
+		return code, nil
+	 }
+	c1 := product.ID + 1
+	code := "ProductCode"+strconv.FormatUint(uint64(c1), 10)
+	IndexRepo.DbClose(GormDB)
+	return code, nil
+	
 }
 func (productRepo productrepo) SearchProducts(search string) ( []model.Product, *httperors.HttpError) {
 	products := []model.Product{}

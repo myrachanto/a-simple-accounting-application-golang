@@ -8,6 +8,8 @@ import (
 type SInvoice struct {
 	SupplierID uint `gorm:"not null" json:"supplierid"`
 	Suppliername string `gorm:"not null" json:"name"`
+	Usercode string `json:"usercode"`
+	Suppliercode string `json:"suppliercode"`
 	Code string `json:"code"`
 	Title  string ` json:"title"`
 	Description string `json:"description"`

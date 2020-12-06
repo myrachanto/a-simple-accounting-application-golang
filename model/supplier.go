@@ -11,6 +11,8 @@ import (
 //Supplier .. model structure 
 type Supplier struct {
 	Name string `gorm:"not null" json:"name"`
+	Suppliercode string `json:"suppliercode"`
+	Usercode string `json:"usercode"`
 	Company string `gorm:"not null" json:"company"`
 	Phone string `gorm:"not null" json:"phone"`
 	Address string `gorm:"not null" json:"address"`

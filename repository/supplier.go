@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"strconv"
 	"github.com/joho/godotenv"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/myrachanto/accounting/httperors"
@@ -46,7 +47,11 @@ func (supplierRepo supplierrepo) Create(supplier *model.Supplier) (string, *http
 		return "", err1
 	}
 	
-	fmt.Println(supplier)
+	code, x := supplierRepo.GeneCode()
+	if x != nil {
+		return "", x
+	}
+	supplier.Suppliercode = code
 	GormDB.Create(&supplier)
 	IndexRepo.DbClose(GormDB)
 	return "supplier created successifully", nil
@@ -131,13 +136,15 @@ func (supplierRepo supplierrepo) GetOne(id int) (*model.Supplierdetails, *httper
 	ok := supplierRepo.SupplierExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("supplier with that id does not exists!")
-	} 
+	}  
 	supplier := Supplierrepo.Getsupplierbyid(id)
-	invoices, e := SInvoicerepo.SuppliersInvoice(supplier.Name)
+	// invoices, e := SInvoicerepo.SuppliersInvoice(supplier.Name)
+	invoices, e := SInvoicerepo.SuppliersInvoicebycode(supplier.Suppliercode)
 	if e != nil {
 		return nil, e
 	}
-	credits, er := SInvoicerepo.SupplierCredits(supplier.Name)
+	// credits, er := SInvoicerepo.SupplierCredits(supplier.Name)
+	credits, er := SInvoicerepo.SupplierCreditsbycode(supplier.Suppliercode)
 	if er != nil {
 		return nil, er
 	}
@@ -146,6 +153,24 @@ func (supplierRepo supplierrepo) GetOne(id int) (*model.Supplierdetails, *httper
 		SInvoices: invoices,
 		Grns: credits,
 	}, nil
+}
+func (supplierRepo supplierrepo)GeneCode() (string, *httperors.HttpError) {
+	supplier := model.Supplier{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	err := GormDB.Last(&supplier)
+	if err.Error != nil {
+		var c1 uint = 1
+		code := "SupplierCode"+strconv.FormatUint(uint64(c1), 10)
+		return code, nil
+	 }
+	c1 := supplier.ID + 1
+	code := "SupplierCode"+strconv.FormatUint(uint64(c1), 10)
+	IndexRepo.DbClose(GormDB)
+	return code, nil
+	
 }
 func (supplierRepo supplierrepo) GetOptions()([]model.Supplier, *httperors.HttpError){
 
@@ -274,6 +299,20 @@ func (supplierRepo supplierrepo)Getsupplier(name string) *model.Supplier {
 		return nil
 	}
 	GormDB.Where("name = ? ", name).First(&supplier)
+	if supplier.Name == "" {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &supplier
+	
+}
+func (supplierRepo supplierrepo)Getsupplierwithcode(code string) *model.Supplier {
+	supplier := model.Supplier{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("suppliercode = ? ", code).First(&supplier)
 	if supplier.Name == "" {
 	   return nil
 	}

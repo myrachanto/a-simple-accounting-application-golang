@@ -13,6 +13,8 @@ type Paymentform struct {
 	Receipt []Receipt `gorm:"many2many:paymentform_receipts"`
 	Payment []Payment `gorm:"many2many:paymentform_payments"`
 	Amount float64  `json:"amount"`
+	Paymentcode string `json:"paymentcode"`
+	Usercode string `json:"usercode"`
 	gorm.Model
 }
 //Validate ...

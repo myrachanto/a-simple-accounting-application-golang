@@ -39,7 +39,7 @@ func (cartRepo cartrepo) Create(cart *model.Cart) (string, *httperors.HttpError)
 	dis := cart.Discount
 	fmt.Println(tx,dis)
 
-	grossamount := cart.Quantity * cart.SPrice
+	grossamount := cart.Quantity * cart.SPrice 
 	taxamount := tx/100 * grossamount
 	discountamount := dis/100 * grossamount
 	// fmt.Println(grossamount,taxamount,discountamount)
@@ -369,7 +369,7 @@ func (cartRepo cartrepo)CarttoTransaction(code string) (tr []model.Transaction, 
 	GormDB.Where("code = ?", code).Find(&carts)
 	IndexRepo.DbClose(GormDB)
 	for _, c := range carts {
-		trans := model.Transaction{Productname :c.Name, Title:"Product sale", Quantity: c.Quantity, Price: c.SPrice,Tax:c.Tax, Code:code, Subtotal:c.Subtotal, Discount:c.Discount,Total:c.Total}
+		trans := model.Transaction{Productname :c.Name, Title:"Product sale", Usercode:c.Usercode, Customercode:c.Customercode, Quantity: c.Quantity, Price: c.SPrice,Tax:c.Tax, Code:code, Subtotal:c.Subtotal, Discount:c.Discount,Total:c.Total}
 		tr = append(tr, trans)
 	}
 	return tr,nil

@@ -21,6 +21,8 @@ func (controller scartController) Create(c echo.Context) error {
 	scart.Suppliername = c.FormValue("suppliername")
 	scart.Name = c.FormValue("name")
 	scart.Code = c.FormValue("code")
+	scart.Suppliercode = c.FormValue("suppliercode")
+	scart.Usercode = c.FormValue("usercode")
 	q, err := strconv.ParseFloat(c.FormValue("quantity"), 64)
 	if err != nil {
 		httperror := httperors.NewBadRequestError("Invalid quantity")

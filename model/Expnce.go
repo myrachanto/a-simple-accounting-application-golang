@@ -9,6 +9,7 @@ type Expence struct {
 	Name string `gorm:"not null" json:"name"`
 	Title string  `gorm:"not null" json:"title"`
 	Description string `gorm:"not null" json:"description"`
+	Usercode string `json:"usercode"`
 	Expencetrasan []Expencetrasan
 	gorm.Model
 }

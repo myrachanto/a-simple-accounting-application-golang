@@ -10,6 +10,7 @@ type Subcategory struct {
 	Title string `gorm:"not null"`
 	Description string `gorm:"not null"`
 	CategoryID uint 
+	Usercode string `json:"usercode"`
 	gorm.Model
 }
 //Validate ..

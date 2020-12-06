@@ -8,7 +8,9 @@ import (
 //Receipt ..
 type Receipt struct {
 	CustomerName string `json:"customername"`
-	Description string `json:"description"` 
+	Customercode string `json:"customercode"`
+	Usercode string `json:"usercode"`
+	Description string `json:"description"`  
 	Code string `json:"code"`
 	CustomerID uint `json:"customerid"`
 	Customer Customer  `json:"customer"`
@@ -18,6 +20,7 @@ type Receipt struct {
 	ClearanceDate time.Time `json:"clearancedate"`
 	Amount float64 `json:"amount"`
 	Status string `json:"status"`
+	Allocated string `json:"allocated"`
 	gorm.Model 
 }
 //ReceiptReport ...

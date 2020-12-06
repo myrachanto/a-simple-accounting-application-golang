@@ -11,6 +11,7 @@ type Message struct {
 	Sender []*User `gorm:"many2many:message_users;"`
 	Description string  `gorm:"not null" json:"description"`
 	Read bool  `gorm:"not null" json:"read"`
+	Usercode string `json:"usercode"`
 	gorm.Model
 }
 //Validate ..

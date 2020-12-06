@@ -201,7 +201,8 @@ func (sInvoiceRepo sInvoicerepo) GetOne(code string) (*model.SInvoiceView, *http
 
 	GormDB.Model(&sInvoice).Where("code = ?", code).First(&sInvoice)
 	IndexRepo.DbClose(GormDB)
-	supplier := Supplierrepo.Getsupplier(sInvoice.Suppliername)
+	// supplier := Supplierrepo.Getsupplier(sInvoice.Suppliername)
+	supplier := Supplierrepo.Getsupplierwithcode(sInvoice.Suppliercode)
 	return &model.SInvoiceView{
 		SInvoice:      sInvoice,
 		Supplier:      supplier,
@@ -234,6 +235,18 @@ func (sInvoiceRepo sInvoicerepo) SInvoiceBysupplier(name string) (t []model.SInv
 	return t, nil
 
 }
+func (sInvoiceRepo sInvoicerepo) SInvoiceBysuppliercode(code string) (t []model.SInvoice, r *httperors.HttpError) {
+
+	sInvoice := model.SInvoice{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&sInvoice).Where("suppliercode = ?", code).Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+}
 func (sInvoiceRepo sInvoicerepo) PaidsInvoices() (t []model.SInvoice, r *httperors.HttpError) {
 
 	sInvoice := model.SInvoice{}
@@ -258,6 +271,18 @@ func (sInvoiceRepo sInvoicerepo) SupplierCredits(name string) (t []model.SInvoic
 	return t, nil
 
 }
+func (sInvoiceRepo sInvoicerepo) SupplierCreditsbycode(code string) (t []model.SInvoice, r *httperors.HttpError) {
+
+	sInvoice := model.SInvoice{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&sInvoice).Where("suppliercode = ? AND status = ?", code, "credit").Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+}
 func (sInvoiceRepo sInvoicerepo) SuppliersInvoice(name string) (t []model.SInvoice, r *httperors.HttpError) {
 
 	sInvoice := model.SInvoice{}
@@ -266,6 +291,19 @@ func (sInvoiceRepo sInvoicerepo) SuppliersInvoice(name string) (t []model.SInvoi
 		return nil, err1
 	}
 	GormDB.Model(&sInvoice).Where("suppliername = ? AND status = ?", name, "invoice").Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+}
+
+func (sInvoiceRepo sInvoicerepo) SuppliersInvoicebycode(code string) (t []model.SInvoice, r *httperors.HttpError) {
+
+	sInvoice := model.SInvoice{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&sInvoice).Where("suppliercode = ? AND status = ?", code, "invoice").Find(&t)
 	IndexRepo.DbClose(GormDB)
 	return t, nil
 

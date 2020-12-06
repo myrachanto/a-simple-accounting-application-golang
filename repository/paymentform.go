@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"strings"
+	"strconv"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/support"
@@ -23,9 +24,62 @@ func (paymentformRepo paymentformrepo) Create(paymentform *model.Paymentform) (*
 	if err1 != nil {
 		return nil, err1
 	}
+
+	code, x := Paymentrepo.GeneCode()
+	if x != nil {
+		return nil, x
+	}
+	paymentform.Paymentcode = code
 	GormDB.Create(&paymentform)
 	IndexRepo.DbClose(GormDB)
 	return paymentform, nil
+}
+func (paymentformRepo paymentformrepo)GetPaymantbyCode(code string) *model.Invoice {
+	invoice := model.Invoice{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("code = ? ", code).First(&invoice)
+	if invoice.ID == 0 {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &invoice
+	
+}
+
+func (paymentformRepo paymentformrepo)GetPaymantformbyname(name string) *model.Paymentform {
+	paymentform := model.Paymentform{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("name = ? ", name).First(&paymentform)
+	if paymentform.ID == 0 {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &paymentform
+	
+}
+func (paymentformRepo paymentformrepo)GeneCode() (string, *httperors.HttpError) {
+	p := model.Paymentform{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	err := GormDB.Last(&p)
+	if err.Error != nil {
+		var c1 uint = 1
+		code := "PaymentformCode"+strconv.FormatUint(uint64(c1), 10)
+		return code, nil
+	 }
+	c1 := p.ID + 1
+	code := "PaymentformCode"+strconv.FormatUint(uint64(c1), 10)
+	IndexRepo.DbClose(GormDB)
+	return code, nil
+	
 }
 func (paymentformRepo paymentformrepo) GetOne(id int) (*model.Paymentform, *httperors.HttpError) {
 	ok := paymentformRepo.ProductUserExistByid(id)

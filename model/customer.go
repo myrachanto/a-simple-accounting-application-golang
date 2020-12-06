@@ -11,6 +11,8 @@ import (
 //Customer ..
 type Customer struct {
 	Name string `gorm:"not null" json:"name"`
+	Customercode string `json:"customercode"`
+	Usercode string `json:"usercode"`
 	Company string `gorm:"not null" json:"company"`
 	Phone string `gorm:"not null" json:"phone"`
 	Address string `gorm:"not null" json:"address"`

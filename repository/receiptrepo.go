@@ -22,6 +22,9 @@ func (receiptRepo receiptrepo) Create(receipt *model.Receipt) (*model.Receipt, *
 	if err1 != nil {
 		return nil, err1
 	}
+	cust := Customerrepo.Getcustomer(receipt.CustomerName)
+	receipt.Customercode = cust.Customercode
+	receipt.Allocated = "notallocated"
 	paymentform := model.Paymentform{}
 	p := model.Paymentform{}
 	if (receipt.Status == "cleared"){
@@ -60,6 +63,100 @@ func (receiptRepo receiptrepo) GetOne(id int) (*model.Receipt, *httperors.HttpEr
 	IndexRepo.DbClose(GormDB)
 	
 	return &receipt, nil
+}
+func (receiptRepo receiptrepo) ViewInvoices(customercode string) ([]model.Invoice, *httperors.HttpError) {
+	ok := Customerrepo.customerExistbycode(customercode)
+	if !ok {
+		return nil, httperors.NewNotFoundError("That customer does not exist")
+	}
+	invoices, err := Invoicerepo.InvoiceByCustomercodenotpaid(customercode)
+	if err != nil {
+		return nil,err
+	}
+	
+	return invoices, nil
+}
+
+func (receiptRepo receiptrepo) AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode string ,amount float64) (string, *httperors.HttpError) {
+	ok := Customerrepo.customerExistbycode(clientcode)
+	if !ok {
+		return "", httperors.NewNotFoundError("That customer does not exist")
+	}
+	customer := Customerrepo.GetcustomerwithCode(clientcode)
+	ok = Invoicerepo.InvoiceExistByCode(invoicecode)
+	if !ok {
+		return "", httperors.NewNotFoundError("That invoice does not exist")
+	}
+	invo := Invoicerepo.GetInvoicebyCode(invoicecode)
+	stats := ""
+	if invo.Total == amount {
+		stats = "fullypaid"
+	}
+	stats = "partialpaid"
+
+	ok = Receiptrepo.ReceiptExistByCode(receiptcode)
+	if !ok {
+		return "", httperors.NewNotFoundError("That receipt does not exist")
+	}
+	receipt := Receiptrepo.GetreceiptwithCode(receiptcode)
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	transact := model.Payrectrasan{}
+	transact.Name = customer.Name
+	transact.Title = "Receipts"
+	transact.Description = "Receipts from customer"
+	transact.CLientcode = clientcode
+	transact.Invoicecode = invoicecode
+	transact.Amount = amount
+	transact.Usercode = usercode
+	transact.Paymentform = receipt.Type
+	transact.Status = stats
+	paymentf := Paymentformrepo.GetPaymantformbyname(receipt.Type)
+
+	invoic := model.Invoice{}
+	paymentform := model.Paymentform{}
+	////////////begin transaction/////////////////////
+	GormDB.Transaction(func(tx *gorm.DB) error {
+		
+		fmt.Println("level 1")
+		tx.Create(&transact)
+
+		
+		tx.Transaction(func(tx2 *gorm.DB) error { 
+		
+			fmt.Println("level 2")
+			bal := invo.Total - amount
+			tx2.Model(&invoic).Where("code = ?", invoicecode).Updates(model.Invoice{Paidstatus: stats, AllPaidstatus: stats, AmountPaid: amount, Balance:bal})
+			return nil
+		})
+			remaining := paymentf.Amount + amount
+			tx.Transaction(func(tx4 *gorm.DB) error {
+				fmt.Println("level 4")
+				tx4.Model(&paymentform).Where("paymentcode = ?", paymentf.Paymentcode).Update("amount",remaining)
+				return nil
+			})
+			return nil
+		})
+	
+	IndexRepo.DbClose(GormDB)
+	return "transaction completed succesifully", nil
+}
+
+func (receiptRepo receiptrepo)GetreceiptwithCode(code string) *model.Receipt {
+	receipt := model.Receipt{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("code = ? ", code).First(&receipt)
+	if receipt.ID == 0 {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &receipt
+	
 }
 func (receiptRepo receiptrepo) UpdateReceipts(code,status string) (string, *httperors.HttpError) {
 	ok := Receiptrepo.ReceiptExistByCode(code)
@@ -122,7 +219,7 @@ func (receiptRepo receiptrepo) ViewReport() (*model.ReceiptReport, *httperors.Ht
 	for _,cn := range canceled {
 		can += cn.Amount
 	}
-	
+	 
 	z := model.ReceiptReport{}
 	z.All = all
 	z.ClearedRecipts.Name = "Cleared Receipts"
@@ -139,6 +236,31 @@ func (receiptRepo receiptrepo) ViewReport() (*model.ReceiptReport, *httperors.Ht
 	
 	IndexRepo.DbClose(GormDB)
 	return &z, nil
+}
+
+func (receiptRepo receiptrepo) All() (t []model.Receipt, r *httperors.HttpError) {
+
+	receipt := model.Receipt{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&receipt).Where("status = ?", "cleared").Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+} 
+func (receiptRepo receiptrepo) ViewCleared() ([]model.Receipt, *httperors.HttpError) {
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1 
+	}
+	receipts := model.Receipt{}
+	cleared := []model.Receipt{}
+	GormDB.Model(&receipts).Where("status = ? AND allocated = ?", "cleared", "notallocated").Find(&cleared)
+	IndexRepo.DbClose(GormDB)
+	return cleared, nil
+
 }
 func (receiptRepo receiptrepo) ReceiptExistByCode(code string) bool {
 	r := model.Receipt{}

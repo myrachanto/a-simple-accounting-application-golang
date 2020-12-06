@@ -8,6 +8,8 @@ import (
 //Payment ..
 type Payment struct {
 	SupplierName string `json:"suppliername"`
+	Suppliercode string `json:"suppliercode"`
+	Usercode string `json:"usercode"`
 	Description string `json:"description"` 
 	Code string `json:"code"`
 	SupplierID uint `json:"supplierrid"`

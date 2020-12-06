@@ -23,6 +23,7 @@ func (controller expencetrasanController) Create(c echo.Context) error {
 	expencetrasan.Title = c.FormValue("title")
 	expencetrasan.Description = c.FormValue("description")
 	expencetrasan.Code = c.FormValue("code")
+	expencetrasan.Usercode = c.FormValue("usercode")
 
 	s, err := strconv.ParseFloat(c.FormValue("amount"), 64)
 	if err != nil {

@@ -11,6 +11,7 @@ type Nortification struct {
 	Users []*User `gorm:"many2many:nortification_users;"`
 	Description string  `gorm:"not null" json:"descriptio"`
 	Read bool  `gorm:"not null" json:"read"`
+	Usercode string `json:"usercode"`
 	gorm.Model
 }
 //Validate ..

@@ -26,6 +26,7 @@ func (controller productController) Create(c echo.Context) error {
 	product.Title = c.FormValue("title")
 	product.Description = c.FormValue("description")
 	product.Category = c.FormValue("category")
+	product.Usercode = c.FormValue("usercode")
 
 	s, err := strconv.ParseFloat(c.FormValue("sprice"), 64)
 	if err != nil {

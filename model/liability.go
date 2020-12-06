@@ -17,6 +17,7 @@ type Liability struct {
 	Monthlypayment float64 `gorm:"not null" json:"monthlypayment"`
 	Liatran []Liatran `gorm:"not null" json:"liatrans"`
 	Payment []Payment `gorm:"many2many:liabilty_payments"`
+	Usercode string `json:"usercode"`
 	gorm.Model
 }
 //Validate ..

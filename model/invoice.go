@@ -8,6 +8,8 @@ import (
 type Invoice struct {
 	CustomerID uint `gorm:"not null" json:"customerid"`
 	Customername string `gorm:"not null" json:"name"`
+	Usercode string `json:"usercode"`
+	Customercode string `json:"customercode"`
 	Code string `json:"code"`
 	Title  string ` json:"title"`
 	Description string `json:"description"`
@@ -26,6 +28,8 @@ type Invoice struct {
 	TransactionID uint `json:"transactionid"`
 	Cash string `json:"cash"`
 	Terms string `json:"terms"`
+	Paidstatus string `json:"paidstatus"`
+	AllPaidstatus string `json:"allpaidstatus"`
 	Instructions string `json:"instructions"`
 	Receipt []Receipt `gorm:"many2many:invoice_receipts"`
 	gorm.Model

@@ -10,6 +10,7 @@ type Price struct {
 	Title string ` json:"title"`
 	Description string `gorm:"not null" json:"description"`
 	Product string ` json:"product"`
+	Usercode string `json:"usercode"`
 	gorm.Model
 }
 //Validate ..

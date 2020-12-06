@@ -19,6 +19,8 @@ type cartController struct{ }
 func (controller cartController) Create(c echo.Context) error {
 	cart := &model.Cart{}
 	cart.Customername = c.FormValue("customername")
+	cart.Customercode = c.FormValue("customercode")
+	cart.Usercode = c.FormValue("usercode")
 	cart.Name = c.FormValue("name")
 	cart.Code = c.FormValue("code")
 	q, err := strconv.ParseFloat(c.FormValue("quantity"), 64)

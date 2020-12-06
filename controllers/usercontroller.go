@@ -30,6 +30,31 @@ func (controller userController) Register(c echo.Context) error {
 	user.Address = c.FormValue("address")
 	user.Email = c.FormValue("email")
 	user.Password = c.FormValue("password")
+
+	pic, err2 := c.FormFile("picture")
+	//    fmt.Println(pic.Filename)
+	   if err2 != nil {
+				httperror := httperors.NewBadRequestError("Invalid picture")
+				return c.JSON(httperror.Code, err2)
+			}	
+		src, err := pic.Open()
+		if err != nil {
+			httperror := httperors.NewBadRequestError("the picture is corrupted")
+			return c.JSON(httperror.Code, err)
+		}	
+		defer src.Close()
+		filePath := "./public/imgs/users/" + pic.Filename
+		// Destination
+		dst, err4 := os.Create(filePath)
+		if err4 != nil {
+			httperror := httperors.NewBadRequestError("the Directory mess")
+			return c.JSON(httperror.Code, err4)
+		}
+		defer dst.Close()
+		// Copy
+		
+		
+	user.Picture = pic.Filename
 	createdUser, err1 := service.UserService.Create(user)
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)

@@ -15,6 +15,7 @@ type User struct {
 	FName string `json:"fname"`
 	LName string `json:"lname"`
 	UName string `gorm:"not null" json:"uname"`
+	Usercode string `json:"usercode"`
 	Phone string  `json:"phone"`
 	Address string  `json:"address"`
 	Dob *time.Time   
@@ -31,6 +32,7 @@ type Auth struct {
 	//User User `gorm:"foreignKey:UserID; not null"`
 	UserID uint `json:"userid"`
 	UName string `json:"uname"`
+	Usercode string `json:"usercode"`
 	Picture string `json:"picture"`
 	Token string `gorm:"size:500;not null"`
 	Admin bool `json:"admin"`
@@ -46,6 +48,7 @@ type Token struct {
 	UserID uint
 	UName string `json:"uname"`
 	Email  string `json:"email"`
+	Usercode string `json:"usercode"`
 	Admin bool `json:"admin"`
 	*jwt.StandardClaims
 }

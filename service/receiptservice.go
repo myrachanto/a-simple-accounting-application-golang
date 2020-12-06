@@ -46,6 +46,25 @@ func (service receiptservice) ViewReport() (*model.ReceiptReport, *httperors.Htt
 	}
 	return options, nil
 }
+
+func (service receiptservice) ViewCleared() ([]model.Receipt, *httperors.HttpError) {
+	options, err1 := r.Receiptrepo.ViewCleared()
+	if err1 != nil {
+		return nil, err1
+	}
+	return options, nil
+}
+func (service receiptservice) AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode string ,amount float64) (string, *httperors.HttpError) {
+	options, err1 := r.Receiptrepo.AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode,amount)
+	return options, err1
+}
+func (service receiptservice) ViewInvoices(customercode string) ([]model.Invoice, *httperors.HttpError) {
+	invoices, err1 := r.Receiptrepo.ViewInvoices(customercode)
+	if err1 != nil {
+		return nil, err1
+	}
+	return invoices, nil
+}
 func (service receiptservice) GetOne(id int) (*model.Receipt, *httperors.HttpError) {
 	receipt, err1 := r.Receiptrepo.GetOne(id)
 	if err1 != nil {

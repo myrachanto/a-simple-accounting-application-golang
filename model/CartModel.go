@@ -9,6 +9,7 @@ type Cart struct {
 	Code string `json:"code" json:"code"`
 	Name string `gorm:"not null" json:"name"`
 	Customername string `gorm:"not null" json:"customername"`
+	Customercode string `json:"customercode"`
 	Quantity float64 `gorm:"not null" json:"quantity"`
 	SPrice float64 `gorm:"not null" son:"sprice"`
 	Subtotal float64 `json:"subtotal"`
@@ -16,6 +17,7 @@ type Cart struct {
 	Tax float64 `json:"tax"` 
 	Discount float64 `json:"discount"`
 	Taxpercent float64 `json:"taxpercent"`
+	Usercode string `json:"usercode"`
 	Total float64 
 	Cartstatus bool 
 	Picture string 
@@ -27,6 +29,8 @@ type Scart struct {
 	Code string `json:"code" json:"code"`
 	Name string `gorm:"not null" json:"name"`
 	Suppliername string `gorm:"not null" json:"suppliername"`
+	Suppliercode string `json:"suppliercode"`
+	Usercode string `json:"usercode"`
 	Quantity float64 `gorm:"not null" json:"quantity"`
 	BPrice float64 `gorm:"not null" son:"bprice"`
 	Subtotal float64 `json:"subtotal"`

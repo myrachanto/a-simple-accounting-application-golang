@@ -16,6 +16,8 @@ type Product struct {
 	Picture string `json:"picture"`
 	BPrice float64 `json:"bprice"`
 	SPrice float64 `json:"sprice"`
+	Usercode string `json:"usercode"`
+	Productcode string `json:"productcode"`
 	Quantity float64 `json:"quantity"`
 	Cart  []*Cart `gorm:"many2many:product_carts;"`
 	Scart  []*Scart `gorm:"many2many:product_carts;"`

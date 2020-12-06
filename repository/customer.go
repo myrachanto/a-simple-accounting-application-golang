@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"strconv"
 	"github.com/joho/godotenv"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/myrachanto/accounting/httperors"
@@ -45,8 +46,11 @@ func (customerRepo customerrepo) Create(customer *model.Customer) (string, *http
 	if err1 != nil {
 		return "", err1
 	}
-	
-	fmt.Println(customer)
+	code, x := customerRepo.GeneCode()
+	if x != nil {
+		return "", x
+	}
+	customer.Customercode = code
 	GormDB.Create(&customer)
 	IndexRepo.DbClose(GormDB)
 	return "customer created successifully", nil
@@ -139,11 +143,13 @@ func (customerRepo customerrepo) GetOne(id int) (*model.Customerdetails, *httper
 	}
 	GormDB.Model(&customer).Where("id = ?", id).First(&customer)
 	IndexRepo.DbClose(GormDB)
-	invoices, e := Invoicerepo.Customerinvoice(customer.Name)
+	// invoices, e := Invoicerepo.Customerinvoice(customer.Name)
+	invoices, e := Invoicerepo.Customerinvoicebycode(customer.Customercode)
 	if e != nil {
 		return nil, e
 	}
-	credits, er := Invoicerepo.CustomerCredits(customer.Name)
+	// credits, er := Invoicerepo.CustomerCredits(customer.Name)
+	credits, er := Invoicerepo.CustomerCreditsbycode(customer.Customercode)
 	if er != nil {
 		return nil, er
 	}
@@ -183,6 +189,24 @@ func (customerRepo customerrepo) All() (t []model.Customer, r *httperors.HttpErr
 	IndexRepo.DbClose(GormDB)
 	return t, nil
 
+}
+func (customerRepo customerrepo)GeneCode() (string, *httperors.HttpError) {
+	customer := model.Customer{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	err := GormDB.Last(&customer)
+	if err.Error != nil {
+		var c1 uint = 1
+		code := "CustomerCode"+strconv.FormatUint(uint64(c1), 10)
+		return code, nil
+	 }
+	c1 := customer.ID + 1
+	code := "CustomerCode"+strconv.FormatUint(uint64(c1), 10)
+	IndexRepo.DbClose(GormDB)
+	return code, nil
+	
 }
 func (customerRepo customerrepo) AllDebts() (t []model.DebtTransaction, r *httperors.HttpError) {
 
@@ -287,6 +311,21 @@ func (customerRepo customerrepo)Getcustomer(name string) *model.Customer {
 	return &customer
 	
 }
+
+func (customerRepo customerrepo)GetcustomerwithCode(code string) *model.Customer {
+	customer := model.Customer{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("customercode = ? ", code).First(&customer)
+	if customer.Name == "" {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &customer
+	
+}
 func (customerRepo customerrepo) ViewReport() (*model.CustomerView, *httperors.HttpError) {
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -330,6 +369,20 @@ func (customerRepo customerrepo)customerExist(email string) bool {
 		return false
 	}
 	GormDB.Where("name = ? ", email).First(&customer)
+	if customer.Name == "" {
+	   return false
+	}
+	IndexRepo.DbClose(GormDB)
+	return true
+	
+}
+func (customerRepo customerrepo)customerExistbycode(customercode string) bool {
+	customer := model.Customer{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return false
+	}
+	GormDB.Where("customercode = ? ", customercode).First(&customer)
 	if customer.Name == "" {
 	   return false
 	}

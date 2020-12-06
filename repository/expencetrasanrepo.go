@@ -106,6 +106,18 @@ func (expencetrasanRepo expencetrasanrepo) Getexpencestransactions(code string) 
 	
 	return t, nil
 }
+func (expencetrasanRepo expencetrasanrepo) All() (t []model.Expencetrasan, r *httperors.HttpError) {
+
+	exptrans := model.Expencetrasan{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&exptrans).Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+}
 func (expencetrasanRepo expencetrasanrepo) Getexpencestrans(code string) (t []model.Expencetrasan, e *httperors.HttpError) {
 
 	exptrans := model.Expencetrasan{}

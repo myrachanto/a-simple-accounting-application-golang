@@ -9,6 +9,7 @@ type Expencetrasan struct {
 	Name string `gorm:"not null" json:"name"`
 	ExpenceID uint  `json:"expenceID"`
 	Code string `json:"code"`
+	Usercode string `json:"usercode"`
 	Mode string `json:"mode"`
 	Title string `gorm:"not null" json:"title"`
 	Description string `gorm:"not null" json:"description"`

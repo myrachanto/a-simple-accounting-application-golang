@@ -14,5 +14,6 @@ type Liatran struct {
 	Amountpaid float64  `gorm:"not null" json:"amountpaid"`
 	Balance float64 `gorm:"not null" json:"balance"`
 	Status bool `gorm:"not null" json:"status"`
+	Usercode string `json:"usercode"`
 	gorm.Model
 }

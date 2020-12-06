@@ -20,6 +20,8 @@ func (controller invoiceController) CreateCart(c echo.Context) error {
 	cart := &model.Cart{}
 	cart.Name = c.FormValue("name")
 	cart.Code = c.FormValue("code")
+	cart.Usercode = c.FormValue("usercode")
+	cart.Customercode = c.FormValue("customercode")
 	sprice := c.FormValue("sprice")
 	quantity := c.FormValue("quantity")
 	fmt.Println(sprice, quantity, ">>>>>>>>>>>")
@@ -47,6 +49,8 @@ func (controller invoiceController) Create(c echo.Context) error {
 	
 	invoice.Customername = c.FormValue("customername")
 	invoice.Code = c.FormValue("code")
+	invoice.Usercode = c.FormValue("usercode")
+	invoice.Customercode = c.FormValue("customercode")
 	invoice.Terms = c.FormValue("terms")
 	invoice.Instructions = c.FormValue("instructions")
 	createdinvoice, err1 := service.Invoiceservice.Create(invoice)

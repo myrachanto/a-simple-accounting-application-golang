@@ -49,6 +49,8 @@ func (controller sInvoiceController) Create(c echo.Context) error {
 	sInvoice.Code = c.FormValue("code")
 	sInvoice.Terms = c.FormValue("terms")
 	sInvoice.Instructions = c.FormValue("instructions")
+	sInvoice.Usercode = c.FormValue("usercode")
+	sInvoice.Suppliercode = c.FormValue("suppliercode")
 	createdsInvoice, err1 := service.SInvoiceservice.Create(sInvoice)
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)

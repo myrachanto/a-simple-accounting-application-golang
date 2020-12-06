@@ -370,7 +370,7 @@ func (scartRepo scartrepo)ScarttoTransaction(code string) (tr []model.STransacti
 	GormDB.Where("code = ?", code).Find(&scarts)
 	IndexRepo.DbClose(GormDB)
 	for _, c := range scarts {
-		trans := model.STransaction{Productname :c.Name, Title:"Product sale", Quantity: c.Quantity, Price: c.BPrice,Tax:c.Tax, Code:code, Subtotal:c.Subtotal, Discount:c.Discount,Total:c.Total}
+		trans := model.STransaction{Productname :c.Name, Title:"Product sale", Quantity: c.Quantity, Suppliercode:c.Suppliercode,Usercode:c.Usercode, Price: c.BPrice,Tax:c.Tax, Code:code, Subtotal:c.Subtotal, Discount:c.Discount,Total:c.Total}
 		tr = append(tr, trans)
 	}
 	return tr,nil

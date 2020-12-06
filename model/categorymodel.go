@@ -9,6 +9,7 @@ type Category struct {
 	Name string `gorm:"not null" json:"name"` 
 	Title string `gorm:"not null" json:"title"`
 	Description string `gorm:"not null" json:"description"`
+	Usercode string `json:"usercode"`
 	MajorcategoryID uint `json:"majorcategoryid"`
 	Majorcategory string ` json:"majorcategory"`
 	gorm.Model

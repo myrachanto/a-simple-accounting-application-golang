@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"strconv"
 	"github.com/joho/godotenv"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/myrachanto/accounting/httperors"
@@ -45,8 +46,12 @@ func (userRepo userrepo) Create(user *model.User) (string, *httperors.HttpError)
 	if err1 != nil {
 		return "", err1
 	}
-	
-	fmt.Println(user)
+	code, x := userRepo.GeneCode()
+	if x != nil {
+		return "", x
+	}
+	user.Usercode = code
+	// fmt.Println(user)
 	GormDB.Create(&user)
 	IndexRepo.DbClose(GormDB)
 	return "user created successifully", nil
@@ -74,6 +79,7 @@ func (userRepo userrepo) Login(auser *model.LoginUser) (*model.Auth, *httperors.
 		UserID: user.ID,
 		UName: user.UName,
 		Admin:user.Admin,
+		Usercode:user.Usercode,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: model.ExpiresAt,
 		},
@@ -97,7 +103,7 @@ func (userRepo userrepo) Login(auser *model.LoginUser) (*model.Auth, *httperors.
 	// if e != nil {
 	// 	return nil, e
 	// }
-	auth := &model.Auth{UserID:user.ID, UName:user.UName,Admin:user.Admin, Picture:user.Picture, Token:tokenString}
+	auth := &model.Auth{UserID:user.ID, UName:user.UName, Usercode:user.Usercode, Admin:user.Admin, Picture:user.Picture, Token:tokenString}
 	GormDB.Create(&auth)
 	IndexRepo.DbClose(GormDB)
 	
@@ -132,6 +138,24 @@ func (userRepo userrepo) All() (t []model.User, r *httperors.HttpError) {
 	IndexRepo.DbClose(GormDB)
 	return t, nil
 
+}
+func (userRepo userrepo)GeneCode() (string, *httperors.HttpError) {
+	user := model.User{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	err := GormDB.Last(&user)
+	if err.Error != nil {
+		var c1 uint = 1
+		code := "UserCode"+strconv.FormatUint(uint64(c1), 10)
+		return code, nil
+	 }
+	c1 := user.ID + 1
+	code := "UserCode"+strconv.FormatUint(uint64(c1), 10)
+	IndexRepo.DbClose(GormDB)
+	return code, nil
+	
 }
 func (userRepo userrepo) GetOne(id int) (*model.User, *httperors.HttpError) {
 	ok := userRepo.UserExistByid(id)

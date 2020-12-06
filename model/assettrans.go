@@ -13,5 +13,6 @@ type Asstrans struct {
 	Depreciation float64 `gorm:"not null" json:"depreciation"`
 	Amount float64 `gorm:"not null" json:"amount"`
 	Status bool `gorm:"not null" json:"status"`
+	Usercode string `json:"usercode"`
 	gorm.Model
 }

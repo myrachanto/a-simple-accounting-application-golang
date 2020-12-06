@@ -10,6 +10,7 @@ type Majorcategory struct {
 	Title string `gorm:"not null" json:"title"`
 	Description string `gorm:"not null" json:"description"`
 	Category []Category `gorm:"not null" json:"categorys"`
+	Usercode string `json:"usercode"`
 	gorm.Model
 }
 //MOptions ..

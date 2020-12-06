@@ -21,7 +21,9 @@ func (paymentRepo paymentrepo) Create(payment *model.Payment) (*model.Payment, *
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
-	}
+	} 
+	sup := Supplierrepo.Getsupplier(payment.SupplierName)
+	payment.Suppliercode = sup.Suppliercode
 	paymentform := model.Paymentform{}
 	p := model.Paymentform{}
 	if (payment.Status == "cleared"){
@@ -201,6 +203,18 @@ func (paymentRepo paymentrepo) ViewReport() (*model.PaymentReport, *httperors.Ht
 	
 	IndexRepo.DbClose(GormDB)
 	return &z, nil
+}
+func (paymentRepo paymentrepo) All() (t []model.Payment, r *httperors.HttpError) {
+
+	rec := model.Payment{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&rec).Where("status = ?", "cleared").Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
 }
 func (paymentRepo paymentrepo) Update(id int, payment *model.Payment) (*model.Payment, *httperors.HttpError) {
 	ok := paymentRepo.paymentUserExistByid(id)

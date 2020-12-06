@@ -30,7 +30,7 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (string, *httperor
 	var ep float64 = 0
 	for _, exp := range exps{
 		ep += exp.Amount
-	}
+	} 
 	var tex float64 = t.Total + ep
 	fmt.Println(tex, t.Total, ep)
 	invoice.Expences = ep
@@ -49,6 +49,8 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (string, *httperor
 	invoice.Title = "sales" 
 	invoice.Cn = false
 	invoice.Status = "invoice"
+	invoice.Paidstatus = "notpaid"
+	invoice.AllPaidstatus = "notpaid"
 	invoice.Description = "Sale of goods and services"
 	
 	transactions,e := Cartrepo.CarttoTransaction(code);if e != nil {
@@ -197,7 +199,8 @@ func (invoiceRepo invoicerepo) GetOne(code string) (*model.InvoiceView, *httpero
 	
 	GormDB.Model(&invoice).Where("code = ?", code).First(&invoice)
 	IndexRepo.DbClose(GormDB)
-	customer := Customerrepo.Getcustomer(invoice.Customername)
+	// customer := Customerrepo.Getcustomer(invoice.Customername)
+	customer := Customerrepo.GetcustomerwithCode(invoice.Customercode)
 	return &model.InvoiceView{
 		Invoice: invoice,
 		Customer: customer,
@@ -225,7 +228,32 @@ func (invoiceRepo invoicerepo) InvoiceByCustomer(name string) (t []model.Invoice
 	if err1 != nil {
 		return nil, err1
 	}
-	GormDB.Model(&invoice).Where("customername = ?", name).Find(&t)
+	GormDB.Model(&invoice).Where("customername = ?", name).Find(&t) 
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+}
+func (invoiceRepo invoicerepo) InvoiceByCustomercode(code string) (t []model.Invoice, r *httperors.HttpError) {
+
+	invoice := model.Invoice{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&invoice).Where("customercode = ?", code).Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+}
+func (invoiceRepo invoicerepo) InvoiceByCustomercodenotpaid(code string) (t []model.Invoice, r *httperors.HttpError) {
+
+	invoice := model.Invoice{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&invoice).Where("customercode = ? AND allpaidstatus = ?", code, "notpaid").Find(&t)
+	// fmt.Println(t)
 	IndexRepo.DbClose(GormDB)
 	return t, nil
 
@@ -254,6 +282,18 @@ func (invoiceRepo invoicerepo) CustomerCredits(name string) (t []model.Invoice, 
 	return t, nil
 
 }
+func (invoiceRepo invoicerepo) CustomerCreditsbycode(code string) (t []model.Invoice, r *httperors.HttpError) {
+
+	invoice := model.Invoice{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&invoice).Where("customercode = ? AND status = ?", code, "credit").Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+}
 func (invoiceRepo invoicerepo) Customerinvoice(name string) (t []model.Invoice, r *httperors.HttpError) {
 
 	invoice := model.Invoice{}
@@ -262,6 +302,33 @@ func (invoiceRepo invoicerepo) Customerinvoice(name string) (t []model.Invoice, 
 		return nil, err1
 	}
 	GormDB.Model(&invoice).Where("customername = ? AND status = ?", name, "invoice").Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+}
+
+func (invoiceRepo invoicerepo)GetInvoicebyCode(code string) *model.Invoice {
+	invoice := model.Invoice{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("code = ? ", code).First(&invoice)
+	if invoice.ID == 0 {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &invoice
+	
+}
+func (invoiceRepo invoicerepo) Customerinvoicebycode(code string) (t []model.Invoice, r *httperors.HttpError) {
+
+	invoice := model.Invoice{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&invoice).Where("customercode = ? AND status = ?", code, "invoice").Find(&t)
 	IndexRepo.DbClose(GormDB)
 	return t, nil
 

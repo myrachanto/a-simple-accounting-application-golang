@@ -22,6 +22,8 @@ type Transaction struct {
 	AmountPaid float64  `gorm:"not null" json:"amountpaid"`
 	Balance float64 `gorm:"not null" json:"balance"`
 	Status string  `gorm:"not null" json:"status"`
+	Usercode string `json:"usercode"`
+	Customercode string `json:"customercode"`
 	gorm.Model
 } 
 //DebtTransaction recordeing customer flow
