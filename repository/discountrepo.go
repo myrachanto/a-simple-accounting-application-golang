@@ -1,11 +1,9 @@
 package repository
 
 import (
-	"fmt"
-	"strings"
+	// "fmt"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
-	"github.com/myrachanto/accounting/support"
 )
 //Discountrepo ...
 var (
@@ -40,7 +38,7 @@ func (discountRepo discountrepo) All() (t []model.Discount, r *httperors.HttpErr
 
 }
 func (discountRepo discountrepo) GetOne(id int) (*model.Discount, *httperors.HttpError) {
-	ok := discountRepo.ProductUserExistByid(id)
+	ok := discountRepo.DiscountExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("discount with that id does not exists!")
 	}
@@ -81,16 +79,23 @@ func (discountRepo discountrepo) GetOptionsell(id int)([]model.Discount, *httper
 	GormDB.Where("id = ? AND buy = ? ", id, false).Find(&discounts)
 	return discounts, nil
 }
-func (discountRepo discountrepo) GetAll(discounts []model.Discount,search *support.Search) ([]model.Discount, *httperors.HttpError) {
-	results, err1 := discountRepo.Search(search, discounts)
+func (discountRepo discountrepo) GetAll(search string) ([]model.Discount, *httperors.HttpError) {
+	results := []model.Discount{}
+	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-			return nil, err1
-		}
+		return nil, err1
+	}
+	if search == ""{
+		GormDB.Find(&results)
+	}
+	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+
+	IndexRepo.DbClose(GormDB)
 	return results, nil
 }
 
 func (discountRepo discountrepo) Update(id int, discount *model.Discount) (*model.Discount, *httperors.HttpError) {
-	ok := discountRepo.ProductUserExistByid(id)
+	ok := discountRepo.DiscountExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("discount with that id does not exists!")
 	}
@@ -99,30 +104,15 @@ func (discountRepo discountrepo) Update(id int, discount *model.Discount) (*mode
 	if err1 != nil {
 		return nil, err1
 	}
-	
-	adiscount := model.Discount{}
-	
-	GormDB.Model(&adiscount).Where("id = ?", id).First(&adiscount)
-	if discount.Name  == "" {
-		discount.Name = adiscount.Name
-	}
-	if discount.Title  == "" {
-		discount.Title = adiscount.Title
-	}
-	if discount.Description  == "" {
-		discount.Description = adiscount.Description
-	}
-	fmt.Println(discount)
-	GormDB.Save(discount)
-
+	GormDB.Model(&discount).Where("id = ?", id).Save(&discount)
 	return discount, nil
 }
 func (discountRepo discountrepo) Delete(id int) (*httperors.HttpSuccess, *httperors.HttpError) {
-	ok := discountRepo.ProductUserExistByid(id)
+	ok := discountRepo.DiscountExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("Product with that id does not exists!")
 	}
-	discount := model.Discount{}
+	discount := model.Discount{} 
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
@@ -132,96 +122,18 @@ func (discountRepo discountrepo) Delete(id int) (*httperors.HttpSuccess, *httper
 	IndexRepo.DbClose(GormDB)
 	return httperors.NewSuccessMessage("deleted successfully"), nil
 }
-func (discountRepo discountrepo)ProductUserExistByid(id int) bool {
+func (discountRepo discountrepo)DiscountExistByid(id int) bool {
 	discount := model.Discount{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return false
 	}
-	res := GormDB.First(&discount, "id =?", id)
-	if res.Error != nil{
+	
+	GormDB.Where("id = ? ", id).First(&discount)
+	if discount.ID == 0 {
 	   return false
 	}
 	IndexRepo.DbClose(GormDB)
 	return true
 	
-}
-
-func (discountRepo discountrepo) Search(Ser *support.Search, discounts []model.Discount)([]model.Discount, *httperors.HttpError){
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1
-	}
-	discount := model.Discount{}
-	switch(Ser.Search_operator){
-	case "all":
-		GormDB.Model(&discount).Order(Ser.Column+" "+Ser.Direction).Find(&discounts)
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		///////////////find some other paginator more effective one///////////////////////////////////////////
-	
-	break;
-	case "equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&discounts);
-	
-	break;
-	case "not_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&discounts);	
-	
-	break;
-	case "less_than" :
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&discounts);	
-	
-	break;
-	case "greater_than":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&discounts);	
-	
-	break;
-	case "less_than_or_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&discounts);	
-	
-	break;
-	case "greater_than_ro_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&discounts);	
-	
-	break;
-		 case "in":
-			// db.Where("name IN (?)", []string{"myrachanto", "anto"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		fmt.Println(s)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"(?)", s).Order(Ser.Column+" "+Ser.Direction).Find(&discounts);
-	
-		break;
-	 case "not_in":
-			//db.Not("name", []string{"jinzhu", "jinzhu 2"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		GormDB.Not(Ser.Search_column, s).Order(Ser.Column+" "+Ser.Direction).Find(&discounts);
-	
-	// break;
-case "like":
-	fmt.Println(Ser)
-	// fmt.Println(Ser.Search_query_1)
-	if Ser.Search_query_1 == "all" {
-			//db.Order("name DESC")
-	GormDB.Order(Ser.Column+" "+Ser.Direction).Find(&discounts)
-	///////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////find some other paginator more effective one///////////////////////////////////////////
-	
-
-	}else {
-
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column+" "+Ser.Direction).Find(&discounts);
-	
-	}
-break;
-	case "between":
-		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&users)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column+" "+Ser.Direction).Find(&discounts);
-	
-	   break;
-	default:
-	return nil, httperors.NewNotFoundError("check your operator!")
-	}
-	IndexRepo.DbClose(GormDB)
-	
-	return discounts, nil
 }

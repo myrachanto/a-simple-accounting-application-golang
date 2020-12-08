@@ -19,31 +19,6 @@ type salesrepo struct{}
 ////////////TODO user id///////////
 /////////////////////////////////////////
 func (salesRepo salesrepo) View()(*model.Sales, *httperors.HttpError) {
-	// error1 := godotenv.Load()
-	// if error1 != nil {
-	// 	log.Fatal("Error loading .env file in routes")
-	// }
-	// //headers
-	// Invoicename := os.Getenv("Invoicename")
-	// Customername := os.Getenv("Customersname")
-	// Username := os.Getenv("Usersname")
-	// Categoryname := os.Getenv("Categoryname")
-	// Majorcatname := os.Getenv("Majorcatname")
-	// Productsname := os.Getenv("Productsname")
-	// //staements
-	// Invoicestatement := os.Getenv("Invoice")
-	// Customerstatement := os.Getenv("Customers")
-	// Userstatement := os.Getenv("Users")
-	// Categorystatement := os.Getenv("Category")
-	// Majorcatstatement := os.Getenv("Majorcat")
-	// Productsstatement := os.Getenv("Products")
-	// //icons
-	// Invoicestatementicon := os.Getenv("Invoiceicon")
-	// Customerstatementicon := os.Getenv("Customersicon")
-	// Userstatementicon := os.Getenv("Usersicon")
-	// Categorystatementicon := os.Getenv("Categoryicon")
-	// Majorcatstatementicon := os.Getenv("Majorcaticon")
-	// Productsstatementicon := os.Getenv("Productsicon")
 	sales := model.Sales{}
 	invoices,err5 := Invoicerepo.All()
 	if err5 != nil {
@@ -107,6 +82,66 @@ func (salesRepo salesrepo) View()(*model.Sales, *httperors.HttpError) {
 	////debtTransaction/////////////
 	sales.DebtTransactions = debts
 	return &sales, nil
+}
+func (salesRepo salesrepo) Purchases()(*model.Purchases, *httperors.HttpError) {
+	purchases := model.Purchases{}
+	invoices,err5 := SInvoicerepo.All()
+	if err5 != nil {
+		return nil, err5
+	}
+	paidinvoices,err4 := SInvoicerepo.PaidsInvoices()
+	if err4 != nil {
+		return nil, err4
+	}
+	debts,err3 := Supplierrepo.AllDebts()
+	if err3 != nil {
+		return nil, err3
+	}
+	transactions,err2 := STransactionrepo.All()
+	if err2 != nil {
+		return nil, err2
+	}
+
+	var to float64 = 0
+	var tax float64 = 0
+	var discount float64 = 0
+	for _, s := range invoices {
+		to += s.Total
+		tax += s.Tax
+		discount += s.Discount
+	}
+
+	var dt float64 = 0
+	for _, d := range debts {
+		dt += d.Amount
+	}
+	var pi float64 = 0
+	for _, d := range paidinvoices {
+		pi += d.Total
+	}
+	////sales/////////////
+	purchases.Purchases.Name = "Purchases"
+	purchases.Purchases.Total = to
+	purchases.Purchases.Description = "Total Purchases"
+	purchases.Purchases.Icon = ""
+	////grossprofit/////////////
+	////Customers/////////////
+	purchases.Creditors.Name = "Creditors"
+	purchases.Creditors.Total = dt
+	purchases.Creditors.Description = "Total Creditors registered"
+	purchases.Creditors.Icon = ""
+	////Invoices/////////////
+	purchases.PaidInvoices.Name = "Paid Invoices"
+	purchases.PaidInvoices.Total = pi
+	purchases.PaidInvoices.Description = "Total Amount paid"
+	purchases.PaidInvoices.Icon = ""
+
+	////Transaction/////////////
+	fmt.Println(transactions)
+	purchases.STransactions = transactions
+	////debtTransaction/////////////
+	purchases.CreditTransaction = debts
+	return &purchases, nil
 }
 // func (salesRepo salesrepo) Email() (*model.Email, *httperors.HttpError) {
 	

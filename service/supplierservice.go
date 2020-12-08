@@ -2,7 +2,6 @@ package service
 
 import (
 	// "fmt"
-	"github.com/myrachanto/accounting/support"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
@@ -51,7 +50,7 @@ func (service supplierservice) ViewReport() (*model.SupplierView, *httperors.Htt
 	}
 	return options, nil
 }
-func (service supplierservice) GetAll(search *support.Search) ([]model.Supplier, *httperors.HttpError) {
+func (service supplierservice) GetAll(search string) ([]model.Supplier, *httperors.HttpError) {
 	
 	results, err := r.Supplierrepo.GetAll(search)
 	if err != nil { 

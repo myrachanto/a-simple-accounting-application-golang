@@ -115,11 +115,18 @@ func (productRepo productrepo) GetProducts(products []model.Product,search *supp
 		}
 	return results, nil
 }
-func (productRepo productrepo) GetAll(products []model.Product,search *support.Search) ([]model.Product, *httperors.HttpError) {
-	results, err1 := productRepo.Search(search, products)
+func (productRepo productrepo) GetAll(search string) ([]model.Product, *httperors.HttpError) {
+	results := []model.Product{}
+	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-			return nil, err1
-		}
+		return nil, err1
+	}
+	if search == ""{
+		GormDB.Find(&results)
+	}
+	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+
+	IndexRepo.DbClose(GormDB)
 	return results, nil
 }
 
@@ -138,28 +145,8 @@ func (productRepo productrepo) Update(id int, product *model.Product) (*model.Pr
 		return nil, httperors.NewNotFoundError("category with that name does not exists!")
 	}
 	product.Majorcategory = cat.Majorcategory 
-	aproduct := model.Product{}
 	
-	GormDB.Model(&aproduct).Where("id = ?", id).First(&aproduct)
-	if product.Name  == "" {
-		product.Name = aproduct.Name
-	}
-	if product.Title  == "" {
-		product.Title = aproduct.Title
-	}
-	if product.Description  == "" {
-		product.Description = aproduct.Description
-	}
-	if product.Category  == "" {
-		product.Category = aproduct.Category
-	}
-	if product.Majorcategory  == "" { 
-		product.Majorcategory = aproduct.Majorcategory
-	}
-	if product.Quantity  == 0 { 
-		product.Quantity = aproduct.Quantity
-	}
-	GormDB.Save(&product)
+	GormDB.Model(&product).Where("id = ?", id).Save(&product)
 	
 	
 	IndexRepo.DbClose(GormDB)

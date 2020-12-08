@@ -3,12 +3,10 @@ package repository
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
-	"github.com/myrachanto/accounting/support"
 	"gorm.io/gorm"
 )
 
@@ -308,20 +306,157 @@ func (sInvoiceRepo sInvoicerepo) SuppliersInvoicebycode(code string) (t []model.
 	return t, nil
 
 }
-func (sInvoiceRepo sInvoicerepo) GetAll(sInvoices []model.SInvoice, search *support.Search) ([]model.SInvoice, *httperors.HttpError) {
-
-	results, err1 := sInvoiceRepo.Search(search, sInvoices)
+func (sInvoiceRepo sInvoicerepo) GetAll(search,dated,searchq2,searchq3 string) ([]model.SInvoice, *httperors.HttpError) {
+	results := []model.SInvoice{}
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
+	if search == "" && dated == ""{
+		GormDB.Where("status = ?","invoice").Find(&results)
+	}
+	if search != "" && dated == ""{
+		GormDB.Where("suppliername LIKE ? AND status = ?", "%"+search+"%", "invoice").Or("code LIKE ? AND status = ?", "%"+search+"%", "invoice").Or("title LIKE ? AND status = ?", "%"+search+"%", "invoice").Or("description LIKE ? AND status = ?", "%"+search+"%", "invoice").Find(&results)
+	}
+	if search != "" && dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("suppliername LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("code LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("title LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("description LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("suppliername LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("code LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("title LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("description LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("suppliername LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("code LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("title LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("description LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("suppliername LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("code LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("title LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Or("description LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"invoice").Find(&results)
+		}
+	}
+	if search == "" && dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("dated > ? AND status = ?", d,"invoice").Or("dated > ? AND status = ?",d,"invoice").Or("dated > ? AND status = ?", d,"invoice").Or("dated > ? AND status = ?",d,"invoice").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("dated > ? AND status = ?",d,"invoice").Or("dated > ? AND status = ?",d,"invoice").Or("dated > ? AND status = ?",d,"invoice").Or("dated > ? AND status = ?", d,"invoice").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("dated > ? AND status = ?", d,"invoice").Or("dated > ? AND status = ?",d,"invoice").Or("dated > ? AND status = ?", d,"invoice").Or("dated > ? AND status = ?", d,"invoice").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("dated > ? AND status = ?",d,"invoice").Or("dated > ? AND status = ?",d,"invoice").Or("dated > ? AND status = ?",d,"invoice").Or("dated > ? AND status = ?",d,"invoice").Find(&results)
+		}
+	}
+	if search != "" && dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("suppliername LIKE ? AND status = ? AND dated BETWEEN ? AND ?", "%"+search+"%","invoice",start, end).Or("code LIKE ? AND status = ? AND dated BETWEEN ? AND ?", "%"+search+"%","invoice",start, end).Or("title LIKE ? AND status = ? AND dated BETWEEN ? AND ?", "%"+search+"%","invoice",start, end).Or("description LIKE ? AND status = ? AND dated BETWEEN ? AND ?", "%"+search+"%","invoice",start, end).Find(&results)
+	}
+	if search == "" && dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND dated BETWEEN ? AND ?","invoice",start, end).Or("status = ? AND dated BETWEEN ? AND ?","invoice",start, end).Or("status = ? AND dated BETWEEN ? AND ?","invoice",start, end).Or("status = ? AND dated BETWEEN ? AND ?","invoice",start, end).Find(&results)
+	}
+
+	IndexRepo.DbClose(GormDB)
 	return results, nil
 }
-func (sInvoiceRepo sInvoicerepo) GetCredit(sInvoices []model.SInvoice, search *support.Search) ([]model.SInvoice, *httperors.HttpError) {
-
-	results, err1 := sInvoiceRepo.Search(search, sInvoices)
+func (sInvoiceRepo sInvoicerepo) GetCredit(search,dated,searchq2,searchq3 string) ([]model.SInvoice, *httperors.HttpError) {
+	results := []model.SInvoice{}
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
+	if search == "" && dated == ""{
+		GormDB.Where("status = ?","credit").Find(&results)
+	}
+	if search != "" && dated == ""{
+		GormDB.Where("suppliername LIKE ? AND status = ?", "%"+search+"%", "credit").Or("code LIKE ? status = ?", "%"+search+"%", "credit").Or("title LIKE ? status = ?", "%"+search+"%", "credit").Or("description LIKE ? status = ?", "%"+search+"%", "credit").Find(&results)
+	}
+	if search != "" && dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("suppliername LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("code LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("title LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("description LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("suppliername LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("code LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("title LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("description LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("suppliername LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("code LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("title LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("description LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("suppliername LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("code LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("title LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Or("description LIKE ? AND dated > ? AND status = ?", "%"+search+"%",d,"credit").Find(&results)
+		}
+	}
+	if search != "" && dated == ""{
+		GormDB.Where("status = ?", "%"+search+"%", "credit").Or("code LIKE ? status = ?", "%"+search+"%", "credit").Or("title LIKE ? status = ?", "%"+search+"%", "credit").Or("description LIKE ? status = ?", "%"+search+"%", "credit").Find(&results)
+	}
+	if search == "" && dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Or("dated > ? AND status = ?",d,"credit").Find(&results)
+		}
+	}
+	if search != "" && dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("suppliername LIKE ? AND status = ? AND dated BETWEEN ? AND ?", "%"+search+"%","credit",start, end).Or("code LIKE ? AND status = ? AND dated BETWEEN ? AND ?", "%"+search+"%","credit",start, end).Or("title LIKE ? AND status = ? AND dated BETWEEN ? AND ?", "%"+search+"%","credit",start, end).Or("description LIKE ? AND status = ? AND dated BETWEEN ? AND ?", "%"+search+"%","credit",start, end).Find(&results)
+	}
+
+	if search == "" && dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND dated BETWEEN ? AND ?","credit",start, end).Or("status = ? AND dated BETWEEN ? AND ?","credit",start, end).Or("status = ? AND dated BETWEEN ? AND ?","credit",start, end).Or("status = ? AND dated BETWEEN ? AND ?","credit",start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
 	return results, nil
 }
 func (sInvoiceRepo sInvoicerepo) GetCreditNotes(search string) ([]model.SInvoice, *httperors.HttpError) {
@@ -476,77 +611,4 @@ func (sInvoiceRepo sInvoicerepo) GeneCode() (string, *httperors.HttpError) {
 	IndexRepo.DbClose(GormDB)
 	return code, nil
 
-}
-func (sInvoiceRepo sInvoicerepo) Search(Ser *support.Search, sInvoices []model.SInvoice) ([]model.SInvoice, *httperors.HttpError) {
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1
-	}
-	sInvoice := model.SInvoice{}
-	switch Ser.Search_operator {
-	case "all":
-		GormDB.Model(&sInvoice).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		///////////////find some other paginator more effective one///////////////////////////////////////////
-
-		break
-	case "equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		break
-	case "not_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		break
-	case "less_than":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		break
-	case "greater_than":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		break
-	case "less_than_or_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		break
-	case "greater_than_ro_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		break
-	case "in":
-		// db.Where("name IN (?)", []string{"myrachanto", "anto"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1, ",")
-		fmt.Println(s)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"(?)", s).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		break
-	case "not_in":
-		//db.Not("name", []string{"jinzhu", "jinzhu 2"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1, ",")
-		GormDB.Not(Ser.Search_column, s).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		// break;
-	case "like":
-		// fmt.Println(Ser.Search_query_1)
-		if Ser.Search_query_1 == "all" {
-			//db.Order("name DESC")
-			GormDB.Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		} else {
-
-			GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-		}
-		break
-	case "between":
-		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&users)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column + " " + Ser.Direction).Find(&sInvoices)
-
-		break
-	default:
-		return nil, httperors.NewNotFoundError("check your operator!")
-	}
-	IndexRepo.DbClose(GormDB)
-
-	return sInvoices, nil
 }

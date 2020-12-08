@@ -2,12 +2,11 @@ package service
 
 import (
 	// "fmt"
-	"github.com/myrachanto/accounting/support"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
 )
-
+//Paymentformservice ...
 var (
 	Paymentformservice paymentformservice = paymentformservice{}
 
@@ -35,14 +34,13 @@ func (service paymentformservice) GetOne(id int) (*model.Paymentform, *httperors
 	return paymentform, nil
 }
 
-func (service paymentformservice) GetAll(paymentforms []model.Paymentform,search *support.Search) ([]model.Paymentform, *httperors.HttpError) {
-	paymentforms, err := r.Paymentformrepo.GetAll(paymentforms,search)
+func (service paymentformservice) GetAll(search string) ([]model.Paymentform, *httperors.HttpError) {
+	results, err := r.Paymentformrepo.GetAll(search)
 	if err != nil {
 		return nil, err
 	}
-	return paymentforms, nil
+	return results, nil
 }
-
 func (service paymentformservice) Update(id int, paymentform *model.Paymentform) (*model.Paymentform, *httperors.HttpError) {
 	paymentform, err1 := r.Paymentformrepo.Update(id, paymentform)
 	if err1 != nil {

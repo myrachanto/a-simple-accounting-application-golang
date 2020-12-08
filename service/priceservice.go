@@ -5,9 +5,8 @@ import (
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
-	"github.com/myrachanto/accounting/support"
 )
-
+//PriceService ...
 var (
 	PriceService priceService = priceService{}
 
@@ -42,12 +41,9 @@ func (service priceService) GetOne(id int) (*model.Price, *httperors.HttpError) 
 	return price, nil
 }
 
-func (service priceService) GetAll(prices []model.Price,search *support.Search) ([]model.Price, *httperors.HttpError) {
-	prices, err := r.Pricerepo.GetAll(prices,search)
-	if err != nil {
-		return nil, err
-	}
-	return prices, nil
+func (service priceService) GetAll(search string) ([]model.Price, *httperors.HttpError) {
+	results, err := r.Pricerepo.GetAll(search)
+	return results, err
 }
 
 func (service priceService) Update(id int, price *model.Price) (*model.Price, *httperors.HttpError) {

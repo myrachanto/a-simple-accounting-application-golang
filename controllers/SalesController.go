@@ -5,7 +5,7 @@ import(
 	"github.com/labstack/echo"
 	"github.com/myrachanto/accounting/service"
 )
- 
+ //SalesController ...
 var (
 	SalesController salesController = salesController{}
 )
@@ -14,6 +14,14 @@ type salesController struct{ }
 func (controller salesController) View(c echo.Context) error {
 		
 	createdsales, err1 := service.Salesservice.View()
+	if err1 != nil {
+		return c.JSON(err1.Code, err1)
+	}
+	return c.JSON(http.StatusOK, createdsales)
+}
+func (controller salesController) Purchases(c echo.Context) error {
+		
+	createdsales, err1 := service.Salesservice.Purchases()
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)
 	}

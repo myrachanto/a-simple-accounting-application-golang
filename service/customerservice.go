@@ -2,12 +2,11 @@ package service
 
 import (
 	// "fmt"
-	"github.com/myrachanto/accounting/support"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
 )
-
+//Customerservice ..
 var (
 	Customerservice customerservice = customerservice{}
 
@@ -65,15 +64,13 @@ func (service customerservice) ViewReport() (*model.CustomerView, *httperors.Htt
 	}
 	return options, nil
 }
-func (service customerservice) GetAll(search *support.Search) ([]model.Customer, *httperors.HttpError) {
-	
+func (service customerservice) GetAll(search string) ([]model.Customer, *httperors.HttpError) {
 	results, err := r.Customerrepo.GetAll(search)
-	if err != nil { 
+	if err != nil {
 		return nil, err
 	}
-	return results, nil 
+	return results, nil
 }
-
 func (service customerservice) Update(id int, customer *model.Customer) (*model.Customer, *httperors.HttpError) {
 	customer, err1 := r.Customerrepo.Update(id, customer)
 	if err1 != nil {

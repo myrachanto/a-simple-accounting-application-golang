@@ -1,13 +1,11 @@
 package service
 
 import (
-	// "fmt"
-	"github.com/myrachanto/accounting/support"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
 )
-
+//CategoryService ....
 var (
 	CategoryService categoryService = categoryService{}
 
@@ -51,8 +49,8 @@ func (service categoryService) GetOne(id int) (*model.Category, *httperors.HttpE
 	return category, nil
 }
 
-func (service categoryService) GetAll(categorys []model.Category,search *support.Search) ([]model.Category, *httperors.HttpError) {
-	categorys, err := r.Categoryrepo.GetAll(categorys,search)
+func (service categoryService) GetAll(search string) ([]model.Category, *httperors.HttpError) {
+	categorys, err := r.Categoryrepo.GetAll(search)
 	if err != nil {
 		return nil, err
 	}

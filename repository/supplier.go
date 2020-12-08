@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 	"strconv"
 	"github.com/joho/godotenv"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
-	"github.com/myrachanto/accounting/support"
 )
 //Supplierrepo ...
 var (
@@ -183,12 +181,19 @@ func (supplierRepo supplierrepo) GetOptions()([]model.Supplier, *httperors.HttpE
 	GormDB.Model(&supplier).Find(&suppliers)
 	return suppliers, nil
 }
-func (supplierRepo supplierrepo) GetAll(search *support.Search) ([]model.Supplier,*httperors.HttpError) {
-	suppliers := []model.Supplier{} 
-	results, err1 := supplierRepo.Search(search, suppliers)
+func (supplierRepo supplierrepo) GetAll(search string) ([]model.Supplier,*httperors.HttpError) {
+	
+	results := []model.Supplier{}
+	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-			return nil, err1
-		}
+		return nil, err1
+	}
+	if search == ""{
+		GormDB.Find(&results)
+	}
+	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+
+	IndexRepo.DbClose(GormDB)
 	return results, nil
 }
 func (supplierRepo supplierrepo) All() (t []model.Supplier, r *httperors.HttpError) {
@@ -203,9 +208,9 @@ func (supplierRepo supplierrepo) All() (t []model.Supplier, r *httperors.HttpErr
 	return t, nil
 
 }
-func (supplierRepo supplierrepo) AllDebts() (t []model.DebtTransaction, r *httperors.HttpError) {
+func (supplierRepo supplierrepo) AllDebts() (t []model.CreditTransaction, r *httperors.HttpError) {
 
-	debts := model.DebtTransaction{}
+	debts := model.CreditTransaction{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
@@ -236,28 +241,8 @@ func (supplierRepo supplierrepo) Update(id int, supplier *model.Supplier) (*mode
 	if err1 != nil {
 		return nil, err1
 	}
-	asupplier := model.Supplier{}
-	
-	GormDB.Model(&asupplier).Where("id = ?", id).First(&asupplier)
-	if supplier.Name  == "" {
-		supplier.Name = asupplier.Name
-	}
-	if supplier.Company  == "" {
-		supplier.Company = asupplier.Company
-	}
-	if supplier.Phone  == "" {
-		supplier.Phone = asupplier.Phone
-	}
-	if supplier.Email  == "" {
-		supplier.Email = asupplier.Email
-	}
-	if supplier.Address  == "" {
-		supplier.Address = asupplier.Address
-	}
-	if supplier.Picture  == "" {
-		supplier.Picture = asupplier.Picture
-	}
-	GormDB.Save(&supplier)
+
+	GormDB.Model(&supplier).Where("id = ?", id).Save(&supplier)
 	
 	IndexRepo.DbClose(GormDB)
 
@@ -398,94 +383,3 @@ func (supplierRepo supplierrepo)SupplierExistByid(id int) bool {
 	return true
 	
 }
-func (supplierRepo supplierrepo) Search(Ser *support.Search, suppliers []model.Supplier)([]model.Supplier, *httperors.HttpError){
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1
-	}
-	supplier := model.Supplier{}
-	// // invoices := model.Invoice{}
-	// fmt.Println(&supplier)
-	switch(Ser.Search_operator){
-	case "all":
-		//db.Order("name DESC")
-		GormDB.Model(&supplier).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers)
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		///////////////find some other paginator more effective one///////////////////////////////////////////
-		
-	break;
-	case "equal_to":
-		GormDB.Preload("Invoices").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);
-		
-	break;
-	case "not_equal_to":
-		GormDB.Preload("Invoices").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);	
-		
-	break;
-	case "less_than" :
-		// order := &Order
-		// db.Where("id = ? and status = ?", reqOrder.id, "cart")
-		// .Preload("OrderItems").Preload("OrderItems.Item").First(&order)
-		GormDB.Preload("Invoices").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);	
-		
-	break;
-	case "greater_than":
-		GormDB.Preload("Invoices").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);	
-		
-	break;
-	case "less_than_or_equal_to":
-		GormDB.Preload("Invoices").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);	
-		
-	break;
-	case "greater_than_ro_equal_to":
-		GormDB.Preload("Invoices").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);	
-		
-	break;
-		 case "in":
-			// db.Where("name IN (?)", []string{"myrachanto", "anto"}).Find(&suppliers)
-		s := strings.Split(Ser.Search_query_1,",")
-		fmt.Println(s)
-		GormDB.Preload("Invoices").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"(?)", s).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);
-		
-		break;
-	 case "not_in":
-			//db.Not("name", []string{"jinzhu", "jinzhu 2"}).Find(&suppliers)
-		s := strings.Split(Ser.Search_query_1,",")
-		GormDB.Preload("Invoices").Not(Ser.Search_column, s).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);
-		
-	// break;
-case "like":
-	// fmt.Println(Ser.Search_query_1)
-	if Ser.Search_query_1 == "all" {
-			//db.Order("name DESC")
-	GormDB.Order(Ser.Column+" "+Ser.Direction).Find(&suppliers)
-
-	}else {
-
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);
-	}
-break;
-	case "between":
-		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&suppliers)
-		GormDB.Preload("Invoices").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column+" "+Ser.Direction).Find(&suppliers);
-		
-	   break;
-	default:
-	return nil, httperors.NewNotFoundError("check your operator!")
-	}
-	IndexRepo.DbClose(GormDB)
-	
-	return suppliers, nil
-}
-////////////subject to futher scrutiny/////////////////////////////////
-// func (supplierRepo supplierrepo)paginator(q *gorm.DB, Ser *support.Search, suppliers []model.Supplier) ([]model.Supplier, *httperors.HttpError) {
-// 	p := paginator.New(adapter.NewGORMAdapter(q), Ser.Per_page)
-// 	p.SetPage(Ser.Page)
-// 	// fmt.Println(Ser.Per_page)
-// 	err3 := p.Results(&suppliers)
-// 	if err3 != nil {
-// 		return nil, httperors.NewNotFoundError("something went wrong paginating!")
-// 	}
-// 	return suppliers, nil
-	
-// }

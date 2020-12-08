@@ -2,12 +2,11 @@ package service
 
 import (
 	// "fmt"
-	"github.com/myrachanto/accounting/support"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
 )
-
+//Subcategoryservice ...
 var (
 	Subcategoryservice subcategoryservice = subcategoryservice{}
 
@@ -35,12 +34,9 @@ func (service subcategoryservice) GetOne(id int) (*model.Subcategory, *httperors
 	return subcategory, nil
 }
 
-func (service subcategoryservice) GetAll(subcategorys []model.Subcategory,search *support.Search) ([]model.Subcategory, *httperors.HttpError) {
-	subcategorys, err := r.Subcategoryrepo.GetAll(subcategorys,search)
-	if err != nil {
-		return nil, err
-	}
-	return subcategorys, nil
+func (service subcategoryservice) GetAll(search string) ([]model.Subcategory, *httperors.HttpError) {
+	results, err := r.Subcategoryrepo.GetAll(search)
+	return results, err
 }
 
 func (service subcategoryservice) Update(id int, subcategory *model.Subcategory) (*model.Subcategory, *httperors.HttpError) {

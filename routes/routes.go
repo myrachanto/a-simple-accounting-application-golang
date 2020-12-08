@@ -272,6 +272,7 @@ func StoreAPI(){
 	///////////////////////////////////////////////////////////
 	////////////////////reports////////////////////////////////////
 	JWTgroup.GET("sales/dashboard", controllers.SalesController.View)
+	JWTgroup.GET("purchases/dashboard", controllers.SalesController.Purchases)
 	// JWTgroup.GET("email/create", controllers.DashboardController.Email)
 
 	// Start server

@@ -5,9 +5,8 @@ import (
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
-	"github.com/myrachanto/accounting/support"
 )
-
+//MessageService ...
 var (
 	MessageService messageService = messageService{}
 
@@ -35,14 +34,13 @@ func (service messageService) GetOne(id int) (*model.Message, *httperors.HttpErr
 	return message, nil
 }
 
-func (service messageService) GetAll(messages []model.Message,search *support.Search) ([]model.Message, *httperors.HttpError) {
-	messages, err := r.Messagerepo.GetAll(messages,search)
+func (service messageService) GetAll(search string) ([]model.Message, *httperors.HttpError) {
+	results, err := r.Messagerepo.GetAll(search)
 	if err != nil {
 		return nil, err
 	}
-	return messages, nil
+	return results, nil
 }
-
 func (service messageService) Update(id int, message *model.Message) (*model.Message, *httperors.HttpError) {
 	message, err1 := r.Messagerepo.Update(id, message)
 	if err1 != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
 )
-
+//Transactionservice ...
 var (
 	Transactionservice transactionservice = transactionservice{}
 

@@ -5,9 +5,8 @@ import (
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
-	"github.com/myrachanto/accounting/support"
 )
-
+//NortificationService
 var (
 	NortificationService nortificationService = nortificationService{}
 
@@ -35,14 +34,13 @@ func (service nortificationService) GetOne(id int) (*model.Nortification, *httpe
 	return nortification, nil
 }
 
-func (service nortificationService) GetAll(nortifications []model.Nortification,search *support.Search) ([]model.Nortification, *httperors.HttpError) {
-	nortifications, err := r.Nortificationrepo.GetAll(nortifications,search)
+func (service nortificationService) GetAll(search string) ([]model.Nortification, *httperors.HttpError) {
+	results, err := r.Nortificationrepo.GetAll(search)
 	if err != nil {
 		return nil, err
 	}
-	return nortifications, nil
+	return results, nil
 }
-
 func (service nortificationService) Update(id int, nortification *model.Nortification) (*model.Nortification, *httperors.HttpError) {
 	nortification, err1 := r.Nortificationrepo.Update(id, nortification)
 	if err1 != nil {

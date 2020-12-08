@@ -3,6 +3,10 @@ package model
 import (
 	"github.com/myrachanto/accounting/httperors"
 )
+//Filter seerach results
+type Filter struct {
+	Name string
+}
 type Search struct{
 	Column string
 	Direction string

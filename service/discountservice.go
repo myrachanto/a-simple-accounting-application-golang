@@ -5,9 +5,8 @@ import (
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
-	"github.com/myrachanto/accounting/support"
 )
-
+//DiscountService ...
 var (
 	DiscountService discountService = discountService{}
 
@@ -35,14 +34,13 @@ func (service discountService) GetOne(id int) (*model.Discount, *httperors.HttpE
 	return discount, nil
 }
 
-func (service discountService) GetAll(discounts []model.Discount,search *support.Search) ([]model.Discount, *httperors.HttpError) {
-	discounts, err := r.Discountrepo.GetAll(discounts,search)
+func (service discountService) GetAll(search string) ([]model.Discount, *httperors.HttpError) {
+	results, err := r.Discountrepo.GetAll(search)
 	if err != nil {
 		return nil, err
 	}
-	return discounts, nil
+	return results, nil
 }
-
 func (service discountService) Update(id int, discount *model.Discount) (*model.Discount, *httperors.HttpError) {
 	discount, err1 := r.Discountrepo.Update(id, discount)
 	if err1 != nil {

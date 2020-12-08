@@ -8,7 +8,6 @@ import(
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/service"
-	"github.com/myrachanto/accounting/support"
 )
  //InvoiceController controller
 var (
@@ -60,44 +59,23 @@ func (controller invoiceController) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdinvoice)
 }
 func (controller invoiceController) GetAll(c echo.Context) error {
-	invoices := []model.Invoice{}
-	column := string(c.QueryParam("column"))
-	direction := string(c.QueryParam("direction"))
-	search_column := string(c.QueryParam("search_column"))
-	search_operator := string(c.QueryParam("search_operator"))
-	search_query_1 := string(c.QueryParam("search_query_1"))
-	search_query_2 := string(c.QueryParam("search_query_2"))
-	per_page, err := strconv.Atoi(c.QueryParam("per_page"))
-	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid per number")
-		return c.JSON(httperror.Code, httperror)
-	}
-	fmt.Println("------------------------")
-	search := &support.Search{Column:column, Direction:direction,Search_column:search_column,Search_operator:search_operator,Search_query_1:search_query_1,Search_query_2:search_query_2,Per_page:per_page}
+	search := string(c.QueryParam("search"))
+	dated := string(c.QueryParam("dated"))
+	searchq2 := string(c.QueryParam("searchq2"))
+	searchq3 := string(c.QueryParam("searchq3"))
 	
-	invoices, err3 := service.Invoiceservice.GetAll(invoices,search)
+	invoices, err3 := service.Invoiceservice.GetAll(search,dated,searchq2,searchq3)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}
 	return c.JSON(http.StatusOK, invoices)
 }
 func (controller invoiceController) GetCredit(c echo.Context) error {
-	invoices := []model.Invoice{}
-	column := string(c.QueryParam("column"))
-	direction := string(c.QueryParam("direction"))
-	search_column := string(c.QueryParam("search_column"))
-	search_operator := string(c.QueryParam("search_operator"))
-	search_query_1 := string(c.QueryParam("search_query_1"))
-	search_query_2 := string(c.QueryParam("search_query_2"))
-	per_page, err := strconv.Atoi(c.QueryParam("per_page"))
-	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid per number")
-		return c.JSON(httperror.Code, httperror)
-	}
-	fmt.Println("------------------------")
-	search := &support.Search{Column:column, Direction:direction,Search_column:search_column,Search_operator:search_operator,Search_query_1:search_query_1,Search_query_2:search_query_2,Per_page:per_page}
-	
-	invoices, err3 := service.Invoiceservice.GetCredit(invoices,search)
+	search := string(c.QueryParam("search"))
+	dated := string(c.QueryParam("dated"))
+	searchq2 := string(c.QueryParam("searchq2"))
+	searchq3 := string(c.QueryParam("searchq3"))
+	invoices, err3 := service.Invoiceservice.GetCredit(search,dated,searchq2,searchq3)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}

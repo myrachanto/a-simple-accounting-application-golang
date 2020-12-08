@@ -7,7 +7,7 @@ import (
 	r "github.com/myrachanto/accounting/repository"
 	"github.com/myrachanto/accounting/support"
 )
-
+//PayrectrasanService ...
 var (
 	PayrectrasanService payrectrasanService = payrectrasanService{}
 

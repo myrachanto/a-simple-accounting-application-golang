@@ -8,7 +8,6 @@ import(
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/service"
-	"github.com/myrachanto/accounting/support"
 )
  //LiabilityController controlls the liability
 var (
@@ -30,22 +29,10 @@ func (controller liabilityController) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdliability)
 }
 func (controller liabilityController) GetAll(c echo.Context) error {
-	liabilitys := []model.Liability{}
-	column := string(c.QueryParam("column"))
-	direction := string(c.QueryParam("direction"))
-	search_column := string(c.QueryParam("search_column"))
-	search_operator := string(c.QueryParam("search_operator"))
-	search_query_1 := string(c.QueryParam("search_query_1"))
-	search_query_2 := string(c.QueryParam("search_query_2"))
-	per_page, err := strconv.Atoi(c.QueryParam("per_page"))
-	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid per number")
-		return c.JSON(httperror.Code, httperror)
-	}
-	fmt.Println("------------------------")
-	search := &support.Search{Column:column, Direction:direction,Search_column:search_column,Search_operator:search_operator,Search_query_1:search_query_1,Search_query_2:search_query_2,Per_page:per_page}
 	
-	liabilitys, err3 := service.Liabilityservice.GetAll(liabilitys,search)
+	search := string(c.QueryParam("q"))
+	
+	liabilitys, err3 := service.Liabilityservice.GetAll(search)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}

@@ -11,6 +11,15 @@ type Sales struct {
 	PaidInvoices SalesModule `json:"paid"`
 	CreditNotes SalesModule `json:"creditnotes"`
 }
+//Purchases representation
+type Purchases struct {
+	Purchases SalesModule `json:"sales"`
+	STransactions []STransaction `json:"transactions"`
+	CreditTransaction []CreditTransaction `json:"creditors"`
+	Creditors SalesModule  `json:"debts"`
+	PaidInvoices SalesModule `json:"paid"`
+	Grn SalesModule `json:"creditnotes"`
+}
 //SalesModule structure of dashboard items
 type SalesModule struct{
 	Name string 

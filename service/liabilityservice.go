@@ -5,9 +5,8 @@ import (
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
-	"github.com/myrachanto/accounting/support"
 )
-
+//Liabilityservice ...
 var (
 	Liabilityservice liabilityservice = liabilityservice{}
 
@@ -32,15 +31,13 @@ func (service liabilityservice) GetOne(id int) (*model.Liability, *httperors.Htt
 	return liability, nil
 }
 
-func (service liabilityservice) GetAll(liabilitys []model.Liability, search *support.Search) ([]model.Liability, *httperors.HttpError) {
-	
-	results, err := r.Liabilityrepo.GetAll(liabilitys, search)
+func (service liabilityservice) GetAll(search string) ([]model.Liability, *httperors.HttpError) {
+	results, err := r.Liabilityrepo.GetAll(search)
 	if err != nil {
 		return nil, err
 	}
-	return results, nil 
+	return results, nil
 }
-
 func (service liabilityservice) Update(id int, liability *model.Liability) (*model.Liability, *httperors.HttpError) {
 	liability, err1 := r.Liabilityrepo.Update(id, liability)
 	if err1 != nil {

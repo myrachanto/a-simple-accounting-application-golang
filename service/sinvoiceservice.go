@@ -1,8 +1,6 @@
 package service
 
 import (
-	// "fmt"
-	"github.com/myrachanto/accounting/support"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
@@ -39,15 +37,15 @@ func (service sInvoiceservice) GetOne(code string) (*model.SInvoiceView, *httper
 	return sInvoice, nil
 }
 
-func (service sInvoiceservice) GetAll(sInvoices []model.SInvoice,search *support.Search) ([]model.SInvoice, *httperors.HttpError) {
-	sInvoices, err := r.SInvoicerepo.GetAll(sInvoices,search)
+func (service sInvoiceservice) GetAll(search,dated,searchq2,searchq3 string) ([]model.SInvoice, *httperors.HttpError) {
+	sInvoices, err := r.SInvoicerepo.GetAll(search,dated,searchq2,searchq3)
 	if err != nil {
 		return nil, err
 	}
 	return sInvoices, nil
 }
-func (service sInvoiceservice) GetCredit(sInvoices []model.SInvoice,search *support.Search) ([]model.SInvoice, *httperors.HttpError) {
-	sInvoices, err := r.SInvoicerepo.GetCredit(sInvoices,search)
+func (service sInvoiceservice) GetCredit(search,dated,searchq2,searchq3 string) ([]model.SInvoice, *httperors.HttpError) {
+	sInvoices, err := r.SInvoicerepo.GetCredit(search,dated,searchq2,searchq3)
 	if err != nil {
 		return nil, err
 	}

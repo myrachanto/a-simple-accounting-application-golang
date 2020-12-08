@@ -17,6 +17,11 @@ var (
 "like":"like","between":"between","in":"in","not_in":"not_in"}
 )
 
+const (
+	Layout = "2006-01-02"
+	layoutUS  = "January 2, 2006"
+)
+
 ///curtesy to gorm
 type indexRepo struct{}
 func init(){

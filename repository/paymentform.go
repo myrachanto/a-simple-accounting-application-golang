@@ -98,12 +98,18 @@ func (paymentformRepo paymentformrepo) GetOne(id int) (*model.Paymentform, *http
 	return &paymentform, nil
 }
 
-func (paymentformRepo paymentformrepo) GetAll(paymentforms []model.Paymentform,search *support.Search) ([]model.Paymentform, *httperors.HttpError) {
-
-	results, err1 := paymentformRepo.Search(search, paymentforms)
+func (paymentformRepo paymentformrepo) GetAll(search string) ([]model.Paymentform, *httperors.HttpError) {
+	results := []model.Paymentform{}
+	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-			return nil, err1
-		}
+		return nil, err1
+	}
+	if search == ""{
+		GormDB.Find(&results)
+	}
+	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+
+	IndexRepo.DbClose(GormDB)
 	return results, nil
 }
 func (paymentformRepo paymentformrepo) All() (t []model.Paymentform, r *httperors.HttpError) {
@@ -128,19 +134,8 @@ func (paymentformRepo paymentformrepo) Update(id int, paymentform *model.Payment
 	if err1 != nil {
 		return nil, err1
 	}
-	apaymentform := model.Paymentform{}
 	
-	GormDB.Model(&apaymentform).Where("id = ?", id).First(&apaymentform)
-	if paymentform.Name  == "" {
-		paymentform.Name = apaymentform.Name
-	}
-	if paymentform.Title  == "" {
-		paymentform.Title = apaymentform.Title
-	}
-	if paymentform.Description  == "" {
-		paymentform.Description = apaymentform.Description
-	}
-	GormDB.Save(&apaymentform)
+	GormDB.Model(&paymentform).Where("id = ?", id).Save(&paymentform)
 	
 	IndexRepo.DbClose(GormDB)
 

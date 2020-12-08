@@ -56,12 +56,9 @@ func (service productservice) GetProducts(products []model.Product,search *suppo
 	}
 	return products, nil
 }
-func (service productservice) GetAll(products []model.Product,search *support.Search) ([]model.Product, *httperors.HttpError) {
-	products, err := r.Productrepo.GetAll(products,search)
-	if err != nil {
-		return nil, err
-	}
-	return products, nil
+func (service productservice) GetAll(search string) ([]model.Product, *httperors.HttpError) {
+	results, err := r.Productrepo.GetAll(search)
+	return results, err
 }
 
 func (service productservice) Update(id int, product *model.Product) (*model.Product, *httperors.HttpError) {

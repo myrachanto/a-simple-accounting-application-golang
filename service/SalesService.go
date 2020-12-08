@@ -24,6 +24,14 @@ func (service salesservice) View() (*model.Sales, *httperors.HttpError) {
 	 return sales, nil
 
 }
+func (service salesservice) Purchases() (*model.Purchases, *httperors.HttpError) {
+	sales, err1 := r.Salesrepo.Purchases()
+	if err1 != nil {
+		return nil, err1
+	}
+	 return sales, nil
+
+}
 // func (service salesservice) Email() (*model.Email, *httperors.HttpError) {
 // 	sales, err1 := r.salesrepo.Email()
 // 	if err1 != nil {
