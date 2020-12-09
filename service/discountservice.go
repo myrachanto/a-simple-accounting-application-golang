@@ -34,12 +34,10 @@ func (service discountService) GetOne(id int) (*model.Discount, *httperors.HttpE
 	return discount, nil
 }
 
-func (service discountService) GetAll(search string) ([]model.Discount, *httperors.HttpError) {
-	results, err := r.Discountrepo.GetAll(search)
-	if err != nil {
-		return nil, err
-	}
-	return results, nil
+
+func (service discountService) GetAll(search string, page,pagesize int) ([]model.Discount, *httperors.HttpError) {
+	results, err := r.Discountrepo.GetAll(search, page,pagesize)
+	return results, err
 }
 func (service discountService) Update(id int, discount *model.Discount) (*model.Discount, *httperors.HttpError) {
 	discount, err1 := r.Discountrepo.Update(id, discount)

@@ -40,11 +40,22 @@ func (controller categoryController) View(c echo.Context) error {
 func (controller categoryController) GetAll(c echo.Context) error {
 
 	search := string(c.QueryParam("q"))
-	categorys, err3 := service.CategoryService.GetAll(search)
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid page number")
+		return c.JSON(httperror.Code, httperror)
+	}
+	pagesize, err := strconv.Atoi(c.QueryParam("pagesize"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid pagesize")
+		return c.JSON(httperror.Code, httperror)
+	}
+	
+	results, err3 := service.CategoryService.GetAll(search, page,pagesize)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}
-	return c.JSON(http.StatusOK, categorys)
+	return c.JSON(http.StatusOK, results)
 } 
 func (controller categoryController) GetOne(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))

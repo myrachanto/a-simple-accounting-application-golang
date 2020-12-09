@@ -34,8 +34,8 @@ func (service taxService) GetOne(id int) (*model.Tax, *httperors.HttpError) {
 	return tax, nil
 }
 
-func (service taxService) GetAll(search string) ([]model.Tax, *httperors.HttpError) {
-	results, err := r.Taxrepo.GetAll(search)
+func (service taxService) GetAll(search string, page,pagesize int) ([]model.Tax, *httperors.HttpError) {
+	results, err := r.Taxrepo.GetAll(search, page,pagesize)
 	return results, err
 }
 

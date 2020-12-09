@@ -52,7 +52,7 @@ func (expenceRepo expencerepo) All() (t []model.Expence, r *httperors.HttpError)
 	return t, nil
 
 }
-func (expenceRepo expencerepo) GetAll(search string) ([]model.Expence, *httperors.HttpError) {
+func (expenceRepo expencerepo) GetAll(search string, page,pagesize int) ([]model.Expence, *httperors.HttpError) {
 	results := []model.Expence{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -61,7 +61,8 @@ func (expenceRepo expencerepo) GetAll(search string) ([]model.Expence, *httperor
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil

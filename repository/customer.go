@@ -168,7 +168,7 @@ func (customerRepo customerrepo) GetOptions()([]model.Customer, *httperors.HttpE
 	GormDB.Model(&customer).Find(&customers)
 	return customers, nil
 }
-func (customerRepo customerrepo) GetAll(search string) ([]model.Customer,*httperors.HttpError) {
+func (customerRepo customerrepo) GetAll(search string, page,pagesize int) ([]model.Customer, *httperors.HttpError) {
 	results := []model.Customer{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -177,7 +177,8 @@ func (customerRepo customerrepo) GetAll(search string) ([]model.Customer,*httper
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("email LIKE ?", "%"+search+"%").Or("company LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil
@@ -359,14 +360,14 @@ func (customerRepo customerrepo)customerExist(email string) bool {
 	return true
 	
 }
-func (customerRepo customerrepo)customerExistbycode(customercode string) bool {
+func (customerRepo customerrepo)CustomerExistbycode(customercode string) bool {
 	customer := model.Customer{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return false
 	}
 	GormDB.Where("customercode = ? ", customercode).First(&customer)
-	if customer.Name == "" {
+	if customer.ID == 0 {
 	   return false
 	}
 	IndexRepo.DbClose(GormDB)

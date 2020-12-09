@@ -79,7 +79,7 @@ func (discountRepo discountrepo) GetOptionsell(id int)([]model.Discount, *httper
 	GormDB.Where("id = ? AND buy = ? ", id, false).Find(&discounts)
 	return discounts, nil
 }
-func (discountRepo discountrepo) GetAll(search string) ([]model.Discount, *httperors.HttpError) {
+func (discountRepo discountrepo) GetAll(search string, page,pagesize int) ([]model.Discount, *httperors.HttpError) {
 	results := []model.Discount{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -88,7 +88,8 @@ func (discountRepo discountrepo) GetAll(search string) ([]model.Discount, *httpe
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil

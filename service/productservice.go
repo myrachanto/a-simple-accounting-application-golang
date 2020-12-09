@@ -56,8 +56,8 @@ func (service productservice) GetProducts(products []model.Product,search *suppo
 	}
 	return products, nil
 }
-func (service productservice) GetAll(search string) ([]model.Product, *httperors.HttpError) {
-	results, err := r.Productrepo.GetAll(search)
+func (service productservice) GetAll(search string, page,pagesize int) ([]model.Product, *httperors.HttpError) {
+	results, err := r.Productrepo.GetAll(search, page,pagesize)
 	return results, err
 }
 

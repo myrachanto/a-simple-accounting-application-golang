@@ -33,7 +33,7 @@ func (service transactionservice) GetOne(id int) (*model.Transaction, *httperors
 }
 
 func (service transactionservice) GetAll(transactions []model.Transaction,search *support.Search) ([]model.Transaction, *httperors.HttpError) {
-	transactions, err := r.Transactionrepo.GetAll(transactions,search)
+	transactions, err := r.Transactionrepo.All()
 	if err != nil {
 		return nil, err
 	}

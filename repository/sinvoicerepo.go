@@ -538,7 +538,7 @@ func (sInvoiceRepo sInvoicerepo) Update(code string) (string, *httperors.HttpErr
 		for _, t := range transactions {
 			tx.Transaction(func(tx4 *gorm.DB) error {
 				fmt.Println("level 4")
-				tx4.Model(&trans).Where("code = ? AND productname = ? AND total > ?", code, t.Productname, 0).Select("credit", "status").UpdateColumns(model.Transaction{Credit: true, Status: "credit"})
+				tx4.Model(&trans).Where("code = ? AND productname = ? AND total < ?", code, t.Productname, 0).Select("credit", "status").UpdateColumns(model.Transaction{Credit: true, Status: "credit"})
 				return nil
 			})
 		}

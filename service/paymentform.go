@@ -34,12 +34,9 @@ func (service paymentformservice) GetOne(id int) (*model.Paymentform, *httperors
 	return paymentform, nil
 }
 
-func (service paymentformservice) GetAll(search string) ([]model.Paymentform, *httperors.HttpError) {
-	results, err := r.Paymentformrepo.GetAll(search)
-	if err != nil {
-		return nil, err
-	}
-	return results, nil
+func (service paymentformservice) GetAll(search string, page,pagesize int) ([]model.Paymentform, *httperors.HttpError) {
+	results, err := r.Paymentformrepo.GetAll(search, page,pagesize)
+	return results, err
 }
 func (service paymentformservice) Update(id int, paymentform *model.Paymentform) (*model.Paymentform, *httperors.HttpError) {
 	paymentform, err1 := r.Paymentformrepo.Update(id, paymentform)

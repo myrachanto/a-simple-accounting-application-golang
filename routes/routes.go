@@ -190,14 +190,15 @@ func StoreAPI(){
 	///////////receipts/////////////////////////////////////////////////////
 	JWTgroup.POST("receipts", controllers.ReceiptController.Create)
 	JWTgroup.GET("receipts/view", controllers.ReceiptController.View)
-	JWTgroup.GET("receipts", controllers.ReceiptController.GetAll)
+	JWTgroup.GET("receipts", controllers.ReceiptController.GetAll) 
 	JWTgroup.GET("receipts/report", controllers.ReceiptController.ViewReport)
 	JWTgroup.GET("receipts/cleared", controllers.ReceiptController.ViewCleared)
 	JWTgroup.GET("receipts/cleared/:customercode", controllers.ReceiptController.ViewInvoices)
 	JWTgroup.POST("receipts/cleared", controllers.ReceiptController.AddReceiptTrans)
 	JWTgroup.GET("receipts/:id", controllers.ReceiptController.GetOne)
 	JWTgroup.POST("receipts/transaction", controllers.ReceiptController.UpdateReceipts)
-	// JWTgroup.PUT("receipts/:id", controllers.ReceiptController.Update)
+	JWTgroup.POST("receipts/allocate", controllers.ReceiptController.AddReceiptTrans)
+	// JWTgroup.PUT("receipts/:id", controllers.ReceiptController.Update) 
 	// JWTgroup.DELETE("receipts/:id", controllers.ReceiptController.Delete)
 	///////////payrecpt/////////////////////////////////////////////////////
 	

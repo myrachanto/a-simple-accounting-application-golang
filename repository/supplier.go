@@ -181,8 +181,7 @@ func (supplierRepo supplierrepo) GetOptions()([]model.Supplier, *httperors.HttpE
 	GormDB.Model(&supplier).Find(&suppliers)
 	return suppliers, nil
 }
-func (supplierRepo supplierrepo) GetAll(search string) ([]model.Supplier,*httperors.HttpError) {
-	
+func (supplierRepo supplierrepo) GetAll(search string, page,pagesize int) ([]model.Supplier, *httperors.HttpError) {
 	results := []model.Supplier{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -191,7 +190,8 @@ func (supplierRepo supplierrepo) GetAll(search string) ([]model.Supplier,*httper
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil

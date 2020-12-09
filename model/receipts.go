@@ -36,6 +36,11 @@ type ReceiptView struct {
 	Customers []Customer `json:"customers"`
 	Paymentform []Paymentform `json:"paymentforms"`
 }
+//ReceiptAlloc ..structure to gather dat for receipts allocation
+type ReceiptAlloc struct {
+	Receipt *Receipt `json:"receipt"`
+	Invoice []Invoice `json:"invoices"` //unpaid invoices
+}
 //ReceiptOptions receipts view analysis
 type ReceiptOptions struct {
 	AllRecipts []Receipt `json:"allreceipts"`

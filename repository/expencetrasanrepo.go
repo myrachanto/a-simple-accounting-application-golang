@@ -1,11 +1,8 @@
 package repository
 
 import (
-	"fmt"
-	"strings"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
-	"github.com/myrachanto/accounting/support"
 )
 //Expencetrasanrepo ...
 var (
@@ -23,6 +20,7 @@ func (expencetrasanRepo expencetrasanrepo) Create(expencetrasan *model.Expencetr
 	if err1 != nil {
 		return nil, err1
 	}
+	expencetrasan.Mode = "invoice"
 	// id := expencetrasan.Expence.ID
 	// expencetrasan.ExpenceID = id 
 	if expencetrasan.Code != "" {
@@ -133,12 +131,12 @@ func (expencetrasanRepo expencetrasanrepo) Getexpencestrans(code string) (t []mo
 } 
 
 func (expencetrasanRepo expencetrasanrepo) UpdateTrans(name,code string) (string, *httperors.HttpError) {
-	ok := SInvoicerepo.SInvoiceExistByCode(code)
+	ok := expencetrasanRepo.expenceExistByCode(code)
 	if ok == false {
 		return "", httperors.NewNotFoundError("Something went wrong with the Expence crediting!")
 	}
 
-	if name == "undefined" && name == "" {
+	if name == "" {
 		return "", httperors.NewNotFoundError("something went wrong")
 	}
 	exptrans := model.Expencetrasan{}
@@ -150,6 +148,20 @@ func (expencetrasanRepo expencetrasanrepo) UpdateTrans(name,code string) (string
 	
 	IndexRepo.DbClose(GormDB)
 	return "Credited succesifully", nil
+}
+func (expencetrasanRepo expencetrasanrepo) expenceExistByCode(code string) bool {
+	exptr := model.Expencetrasan{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return false
+	}
+	GormDB.Where("code = ?", code).First(&exptr)
+	if exptr.ID == 0 {
+	   return false
+	}
+	IndexRepo.DbClose(GormDB)
+	return true
+
 }
 func (expencetrasanRepo expencetrasanrepo) GetOne(id int) (*model.Expencetrasan, *httperors.HttpError) {
 	ok := expencetrasanRepo.ProductUserExistByid(id)
@@ -167,15 +179,6 @@ func (expencetrasanRepo expencetrasanrepo) GetOne(id int) (*model.Expencetrasan,
 	
 	return &expencetrasan, nil
 }
-
-func (expencetrasanRepo expencetrasanrepo) GetAll(expencetrasans []model.Expencetrasan,search *support.Search) ([]model.Expencetrasan, *httperors.HttpError) {
-	results, err1 := expencetrasanRepo.Search(search, expencetrasans)
-	if err1 != nil {
-			return nil, err1
-		}
-	return results, nil
-}
-
 func (expencetrasanRepo expencetrasanrepo) Update(id int, expencetrasan *model.Expencetrasan) (*model.Expencetrasan, *httperors.HttpError) {
 	ok := expencetrasanRepo.ProductUserExistByid(id)
 	if !ok {
@@ -228,71 +231,4 @@ func (expencetrasanRepo expencetrasanrepo)ProductUserExistByid(id int) bool {
 	IndexRepo.DbClose(GormDB)
 	return true
 	
-}
-
-func (expencetrasanRepo expencetrasanrepo) Search(Ser *support.Search, expencetrasans []model.Expencetrasan)([]model.Expencetrasan, *httperors.HttpError){
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1
-	}
-	expencetrasan := model.Expencetrasan{}
-	switch(Ser.Search_operator){
-	case "all":
-		GormDB.Model(&expencetrasan).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans)
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		///////////////find some other paginator more effective one///////////////////////////////////////////
-		
-	break;
-	case "equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);
-		
-	break;
-	case "not_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);	
-		
-	break;
-	case "less_than" :
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);	
-		
-	break;
-	case "greater_than":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);	
-		
-	break;
-	case "less_than_or_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);	
-		
-	break;
-	case "greater_than_ro_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);	
-		
-	break;
-		 case "in":
-			// db.Where("name IN (?)", []string{"myrachanto", "anto"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		fmt.Println(s)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"(?)", s).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);
-		
-		break;
-	 case "not_in":
-			//db.Not("name", []string{"jinzhu", "jinzhu 2"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		GormDB.Not(Ser.Search_column, s).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);
-		
-	// break;
-	case "like":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);
-		
-	break;
-	case "between":
-		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&users)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column+" "+Ser.Direction).Find(&expencetrasans);
-		
-	   break;
-	default:
-	return nil, httperors.NewNotFoundError("check your operator!")
-	}
-	IndexRepo.DbClose(GormDB)
-	
-	return expencetrasans, nil
 }

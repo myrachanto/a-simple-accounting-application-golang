@@ -33,11 +33,11 @@ func (service subcategoryservice) GetOne(id int) (*model.Subcategory, *httperors
 	}
 	return subcategory, nil
 }
-
-func (service subcategoryservice) GetAll(search string) ([]model.Subcategory, *httperors.HttpError) {
-	results, err := r.Subcategoryrepo.GetAll(search)
+func (service subcategoryservice) GetAll(search string, page,pagesize int) ([]model.Subcategory, *httperors.HttpError) {
+	results, err := r.Subcategoryrepo.GetAll(search, page,pagesize)
 	return results, err
 }
+
 
 func (service subcategoryservice) Update(id int, subcategory *model.Subcategory) (*model.Subcategory, *httperors.HttpError) {
 	subcategory, err1 := r.Subcategoryrepo.Update(id, subcategory)

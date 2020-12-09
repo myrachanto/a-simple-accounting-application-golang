@@ -41,7 +41,7 @@ func (nortificationRepo nortificationrepo) GetOne(id int) (*model.Nortification,
 	return &nortification, nil
 }
 
-func (nortificationRepo nortificationrepo) GetAll(search string) ([]model.Nortification, *httperors.HttpError) {
+func (nortificationRepo nortificationrepo) GetAll(search string, page,pagesize int) ([]model.Nortification, *httperors.HttpError) {
 	results := []model.Nortification{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -50,7 +50,8 @@ func (nortificationRepo nortificationrepo) GetAll(search string) ([]model.Nortif
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil

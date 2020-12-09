@@ -2,12 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
 	"gorm.io/gorm"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
-	"github.com/myrachanto/accounting/support"
 )
 //Receiptrepo ...
 var (
@@ -64,21 +62,25 @@ func (receiptRepo receiptrepo) GetOne(id int) (*model.Receipt, *httperors.HttpEr
 	
 	return &receipt, nil
 }
-func (receiptRepo receiptrepo) ViewInvoices(customercode string) ([]model.Invoice, *httperors.HttpError) {
-	ok := Customerrepo.customerExistbycode(customercode)
-	if !ok {
-		return nil, httperors.NewNotFoundError("That customer does not exist")
+func (receiptRepo receiptrepo) ViewInvoices(code string) (*model.ReceiptAlloc, *httperors.HttpError) {
+	fmt.Println(code)
+	rec := Receiptrepo.GetreceiptwithCode(code)
+	if rec == nil {
+		return nil, httperors.NewNotFoundError("That Receipt does not exist")
 	}
-	invoices, err := Invoicerepo.InvoiceByCustomercodenotpaid(customercode)
+	invoices, err := Invoicerepo.InvoiceByCustomercodenotpaid(rec.Customercode)
 	if err != nil {
 		return nil,err
 	}
 	
-	return invoices, nil
+	return &model.ReceiptAlloc{
+		Receipt: rec,
+		Invoice:invoices,
+	}, nil
 }
 
 func (receiptRepo receiptrepo) AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode string ,amount float64) (string, *httperors.HttpError) {
-	ok := Customerrepo.customerExistbycode(clientcode)
+	ok := Customerrepo.CustomerExistbycode(clientcode)
 	if !ok {
 		return "", httperors.NewNotFoundError("That customer does not exist")
 	}
@@ -93,7 +95,7 @@ func (receiptRepo receiptrepo) AddReceiptTrans(clientcode,invoicecode,usercode,r
 		stats = "fullypaid"
 	}
 	stats = "partialpaid"
-
+fmt.Println(receiptcode)
 	ok = Receiptrepo.ReceiptExistByCode(receiptcode)
 	if !ok {
 		return "", httperors.NewNotFoundError("That receipt does not exist")
@@ -117,6 +119,7 @@ func (receiptRepo receiptrepo) AddReceiptTrans(clientcode,invoicecode,usercode,r
 
 	invoic := model.Invoice{}
 	paymentform := model.Paymentform{}
+	reciep := model.Receipt{}
 	////////////begin transaction/////////////////////
 	GormDB.Transaction(func(tx *gorm.DB) error {
 		
@@ -137,6 +140,11 @@ func (receiptRepo receiptrepo) AddReceiptTrans(clientcode,invoicecode,usercode,r
 				tx4.Model(&paymentform).Where("paymentcode = ?", paymentf.Paymentcode).Update("amount",remaining)
 				return nil
 			})
+			tx.Transaction(func(tx4 *gorm.DB) error {
+				fmt.Println("level 4")
+				tx4.Model(&reciep).Where("code = ?", receiptcode).Update("allocated","allocated")
+				return nil
+			})
 			return nil
 		})
 	
@@ -151,6 +159,20 @@ func (receiptRepo receiptrepo)GetreceiptwithCode(code string) *model.Receipt {
 		return nil
 	}
 	GormDB.Where("code = ? ", code).First(&receipt)
+	if receipt.ID == 0 {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &receipt
+	
+}
+func (receiptRepo receiptrepo)GetreceiptwithCodeCustomer(code, customercode string) *model.Receipt {
+	receipt := model.Receipt{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("code = ? AND customercode = ?", code, customercode).First(&receipt)
 	if receipt.ID == 0 {
 	   return nil
 	}
@@ -269,8 +291,8 @@ func (receiptRepo receiptrepo) ReceiptExistByCode(code string) bool {
 		return false
 	}
 
-	res := GormDB.First(&r, "code =?", code)
-	if res.Error != nil {
+	GormDB.Where("code = ? ", code).First(&r)
+	if r.ID == 0 {
 		return false
 	}
 	IndexRepo.DbClose(GormDB)
@@ -406,77 +428,4 @@ func (receiptRepo receiptrepo)GeneCode() (string, *httperors.HttpError) {
 	IndexRepo.DbClose(GormDB)
 	return code, nil
 	
-}
-func (receiptRepo receiptrepo) Search(Ser *support.Search, receipts []model.Receipt)([]model.Receipt, *httperors.HttpError){
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1
-	}
-	receipt := model.Receipt{}
-	switch(Ser.Search_operator){
-	case "all":
-		GormDB.Model(&receipt).Order(Ser.Column+" "+Ser.Direction).Find(&receipts)
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		///////////////find some other paginator more effective one///////////////////////////////////////////
-		
-	break;
-	case "equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);
-		
-	break;
-	case "not_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);	
-		
-	break;
-	case "less_than" :
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);	
-		
-	break;
-	case "greater_than":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);	
-		
-	break;
-	case "less_than_or_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);	
-		
-	break;
-	case "greater_than_ro_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);	
-		
-	break;
-		 case "in":
-			// db.Where("name IN (?)", []string{"myrachanto", "anto"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		fmt.Println(s)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"(?)", s).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);
-		
-		break;
-	 case "not_in":
-			//db.Not("name", []string{"jinzhu", "jinzhu 2"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		GormDB.Not(Ser.Search_column, s).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);
-		
-	// break;
-	case "like":
-		// fmt.Println(Ser.Search_query_1)
-		if Ser.Search_query_1 == "all" {
-			//db.Order("name DESC")
-			GormDB.Order(Ser.Column + " " + Ser.Direction).Find(&receipts)
-
-		} else {
-
-			GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column + " " + Ser.Direction).Find(&receipts)
-		}
-		break
-	case "between":
-		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&users)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column+" "+Ser.Direction).Find(&receipts);
-		
-	   break;
-	default:
-	return nil, httperors.NewNotFoundError("check your operator!")
-	}
-	IndexRepo.DbClose(GormDB)
-	
-	return receipts, nil
 }

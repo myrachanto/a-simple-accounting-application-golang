@@ -30,13 +30,24 @@ func (controller mcategoryController) Create(c echo.Context) error {
 }
 func (controller mcategoryController) GetAll(c echo.Context) error {
 	
-	search := string(c.QueryParam("q"))
 	
-	majorcategorys, err3 := service.Mcategoryservice.GetAll(search)
+	search := string(c.QueryParam("q"))
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid page number")
+		return c.JSON(httperror.Code, httperror)
+	}
+	pagesize, err := strconv.Atoi(c.QueryParam("pagesize"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid pagesize")
+		return c.JSON(httperror.Code, httperror)
+	}
+	
+	results, err3 := service.Mcategoryservice.GetAll(search, page,pagesize)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}
-	return c.JSON(http.StatusOK, majorcategorys)
+	return c.JSON(http.StatusOK, results)
 } 
 func (controller mcategoryController) GetOne(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))

@@ -34,12 +34,10 @@ func (service mcategoryservice) GetOne(id int) (*model.Majorcategory, *httperors
 	return majorcategory, nil
 }
 
-func (service mcategoryservice) GetAll(search string) ([]model.Majorcategory, *httperors.HttpError) {
-	results, err := r.Majorcategoryrepo.GetAll(search)
-	if err != nil {
-		return nil, err
-	}
-	return results, nil
+
+func (service mcategoryservice) GetAll(search string, page,pagesize int) ([]model.Majorcategory, *httperors.HttpError) {
+	results, err := r.Majorcategoryrepo.GetAll(search, page,pagesize)
+	return results, err
 }
 func (service mcategoryservice) Update(id int, majorcategory *model.Majorcategory) (*model.Majorcategory, *httperors.HttpError) {
 	majorcategory, err1 := r.Majorcategoryrepo.Update(id, majorcategory)

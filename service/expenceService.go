@@ -34,8 +34,9 @@ func (service expenceService) GetOne(id int) (*model.Expence, *httperors.HttpErr
 	return expence, nil
 }
 
-func (service expenceService) GetAll(search string) ([]model.Expence, *httperors.HttpError) {
-	results, err := r.Expencerepo.GetAll(search)
+
+func (service expenceService) GetAll(search string, page,pagesize int) ([]model.Expence, *httperors.HttpError) {
+	results, err := r.Expencerepo.GetAll(search, page,pagesize)
 	return results, err
 }
 func (service expenceService) Update(id int, expence *model.Expence) (*model.Expence, *httperors.HttpError) {

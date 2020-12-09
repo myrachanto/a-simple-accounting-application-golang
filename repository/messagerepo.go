@@ -41,7 +41,8 @@ func (messageRepo messagerepo) GetOne(id int) (*model.Message, *httperors.HttpEr
 	return &message, nil
 }
 
-func (messageRepo messagerepo) GetAll(search string) ([]model.Message, *httperors.HttpError) {
+
+func (messageRepo messagerepo) GetAll(search string, page,pagesize int) ([]model.Message, *httperors.HttpError) {
 	results := []model.Message{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -50,7 +51,8 @@ func (messageRepo messagerepo) GetAll(search string) ([]model.Message, *httperor
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil

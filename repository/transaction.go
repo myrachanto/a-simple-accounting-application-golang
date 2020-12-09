@@ -1,11 +1,8 @@
 package repository
 
 import (
-	"fmt"
-	"strings"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
-	"github.com/myrachanto/accounting/support"
 )
 //Transactionrepo...
 var (
@@ -51,13 +48,6 @@ func (transactionRepo transactionrepo) All() (t []model.Transaction, r *httperor
 	IndexRepo.DbClose(GormDB)
 	return t, nil
 
-}
-func (transactionRepo transactionrepo) GetAll(transactions []model.Transaction,search *support.Search) ([]model.Transaction, *httperors.HttpError) {
-	results, err1 := transactionRepo.Search(search, transactions)
-	if err1 != nil {
-			return nil, err1
-		}
-	return results, nil
 }
 
 func (transactionRepo transactionrepo) Update(id int, transaction *model.Transaction) (*model.Transaction, *httperors.HttpError) {
@@ -129,8 +119,8 @@ func (transactionRepo transactionrepo) GetTransactionsinvoice(code string) (t []
 	if err1 != nil {
 		return nil, err1
 	}
-	
-	GormDB.Where("code = ? AND credit = ? AND status = ?", code, false, "invoice").Find(&t)
+	 
+	GormDB.Where("code = ? AND status = ?", code, "invoice").Find(&t)
 	IndexRepo.DbClose(GormDB)
 	
 	return t, nil
@@ -142,7 +132,7 @@ func (transactionRepo transactionrepo) GetTransactionscredit(code string) (t []m
 		return nil, err1
 	} 
 	
-	GormDB.Where("code = ? AND credit = ? AND status = ?", code, true, "credit").Find(&t)
+	GormDB.Where("code = ? AND status = ?", code, "credit").Find(&t)
 	IndexRepo.DbClose(GormDB)
 	
 	return t, nil
@@ -157,70 +147,4 @@ func (transactionRepo transactionrepo) GetTransactionspedingcredit(code string) 
 	IndexRepo.DbClose(GormDB)
 	
 	return t, nil
-}
-func (transactionRepo transactionrepo) Search(Ser *support.Search, transactions []model.Transaction)([]model.Transaction, *httperors.HttpError){
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1
-	}
-	transaction := model.Transaction{}
-	switch(Ser.Search_operator){
-	case "all":
-		GormDB.Model(&transaction).Order(Ser.Column+" "+Ser.Direction).Find(&transactions)
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		///////////////find some other paginator more effective one///////////////////////////////////////////
-		
-	break;
-	case "equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&transactions);
-		
-	break;
-	case "not_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&transactions);	
-		
-	break;
-	case "less_than" :
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&transactions);	
-		
-	break;
-	case "greater_than":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&transactions);	
-		
-	break;
-	case "less_than_or_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&transactions);	
-		
-	break;
-	case "greater_than_ro_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&transactions);	
-		
-	break;
-		 case "in":
-			// db.Where("name IN (?)", []string{"myrachanto", "anto"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		fmt.Println(s)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"(?)", s).Order(Ser.Column+" "+Ser.Direction).Find(&transactions);
-		
-		break;
-	 case "not_in":
-			//db.Not("name", []string{"jinzhu", "jinzhu 2"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		GormDB.Not(Ser.Search_column, s).Order(Ser.Column+" "+Ser.Direction).Find(&transactions);
-		
-	// break;
-	case "like":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column+" "+Ser.Direction).Find(&transactions);
-		
-	break;
-	case "between":
-		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&users)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column+" "+Ser.Direction).Find(&transactions);
-		
-	   break;
-	default:
-	return nil, httperors.NewNotFoundError("check your operator!")
-	}
-	IndexRepo.DbClose(GormDB)
-	
-	return transactions, nil
 }

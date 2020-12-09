@@ -29,13 +29,24 @@ func (controller taxController) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdtax)
 } 
 func (controller taxController) GetAll(c echo.Context) error {
-	
+
 	search := string(c.QueryParam("q"))
-	taxs, err3 := service.TaxService.GetAll(search)
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid page number")
+		return c.JSON(httperror.Code, httperror)
+	}
+	pagesize, err := strconv.Atoi(c.QueryParam("pagesize"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid pagesize")
+		return c.JSON(httperror.Code, httperror)
+	}
+	
+	results, err3 := service.TaxService.GetAll(search, page,pagesize)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}
-	return c.JSON(http.StatusOK, taxs)
+	return c.JSON(http.StatusOK, results)
 } 
 func (controller taxController) GetOne(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))

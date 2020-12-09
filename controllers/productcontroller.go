@@ -83,6 +83,16 @@ func (controller productController) View(c echo.Context) error {
 func (controller productController) SearchProduct(c echo.Context) error {
 
 	search := string(c.QueryParam("search"))
+	// page, err := strconv.Atoi(c.QueryParam("page"))
+	// if err != nil {
+	// 	httperror := httperors.NewBadRequestError("Invalid page number")
+	// 	return c.JSON(httperror.Code, httperror)
+	// }
+	// pagesize, err := strconv.Atoi(c.QueryParam("pagesize"))
+	// if err != nil {
+	// 	httperror := httperors.NewBadRequestError("Invalid pagesize")
+	// 	return c.JSON(httperror.Code, httperror)
+	// }
 	options, problem := service.Productservice.ProductSearch(search)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
@@ -113,12 +123,22 @@ func (controller productController) GetProducts(c echo.Context) error {
 func (controller productController) GetAll(c echo.Context) error {
 	
 	search := string(c.QueryParam("q"))
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid page number")
+		return c.JSON(httperror.Code, httperror)
+	}
+	pagesize, err := strconv.Atoi(c.QueryParam("pagesize"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid pagesize")
+		return c.JSON(httperror.Code, httperror)
+	}
 	
-	products, err3 := service.Productservice.GetAll(search)
+	results, err3 := service.Productservice.GetAll(search, page,pagesize)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}
-	return c.JSON(http.StatusOK, products)
+	return c.JSON(http.StatusOK, results)
 } 
 func (controller productController) GetOne(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))

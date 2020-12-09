@@ -62,7 +62,25 @@ func (controller receiptController) UpdateReceipts(c echo.Context) error {
 }
 func (controller receiptController) AddReceiptTrans(c echo.Context) error {
 		
-	clientcode := c.FormValue("clientcode")
+	clientcode := c.FormValue("customercode")
+	invoicecode := c.FormValue("invoicecode")
+	usercode := c.FormValue("usercode")
+	receiptcode := c.FormValue("receiptcode")
+	fmt.Println(receiptcode)
+	amount, err := strconv.ParseFloat(c.FormValue("amount"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid amount")
+		return c.JSON(httperror.Code, httperror)
+	}
+	updatedcart, problem := service.Receiptservice.AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode,amount)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, updatedcart)
+}
+func (controller receiptController) Allocate(c echo.Context) error {
+		
+	clientcode := c.FormValue("customercode")
 	invoicecode := c.FormValue("invoicecode")
 	usercode := c.FormValue("usercode")
 	receiptcode := c.FormValue("receiptcode")
@@ -95,6 +113,7 @@ func (controller receiptController) ViewCleared(c echo.Context) error {
 }
 func (controller receiptController) ViewInvoices(c echo.Context) error {
 	customercode := c.Param("customercode")
+	fmt.Println(customercode)
 	invoices, problem := service.Receiptservice.ViewInvoices(customercode)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)

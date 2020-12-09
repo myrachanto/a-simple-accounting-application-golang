@@ -98,7 +98,7 @@ func (paymentformRepo paymentformrepo) GetOne(id int) (*model.Paymentform, *http
 	return &paymentform, nil
 }
 
-func (paymentformRepo paymentformrepo) GetAll(search string) ([]model.Paymentform, *httperors.HttpError) {
+func (paymentformRepo paymentformrepo) GetAll(search string, page,pagesize int) ([]model.Paymentform, *httperors.HttpError) {
 	results := []model.Paymentform{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -107,7 +107,8 @@ func (paymentformRepo paymentformrepo) GetAll(search string) ([]model.Paymentfor
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil

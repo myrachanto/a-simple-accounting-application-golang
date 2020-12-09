@@ -49,12 +49,9 @@ func (service categoryService) GetOne(id int) (*model.Category, *httperors.HttpE
 	return category, nil
 }
 
-func (service categoryService) GetAll(search string) ([]model.Category, *httperors.HttpError) {
-	categorys, err := r.Categoryrepo.GetAll(search)
-	if err != nil {
-		return nil, err
-	}
-	return categorys, nil
+func (service categoryService) GetAll(search string, page,pagesize int) ([]model.Category, *httperors.HttpError) {
+	results, err := r.Categoryrepo.GetAll(search, page,pagesize)
+	return results, err
 }
 
 func (service categoryService) Update(id int, category *model.Category) (*model.Category, *httperors.HttpError) {

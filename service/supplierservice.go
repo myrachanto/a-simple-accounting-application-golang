@@ -50,13 +50,10 @@ func (service supplierservice) ViewReport() (*model.SupplierView, *httperors.Htt
 	}
 	return options, nil
 }
-func (service supplierservice) GetAll(search string) ([]model.Supplier, *httperors.HttpError) {
-	
-	results, err := r.Supplierrepo.GetAll(search)
-	if err != nil { 
-		return nil, err
-	}
-	return results, nil 
+
+func (service supplierservice) GetAll(search string, page,pagesize int) ([]model.Supplier, *httperors.HttpError) {
+	results, err := r.Supplierrepo.GetAll(search, page,pagesize)
+	return results, err
 }
 
 func (service supplierservice) Update(id int, supplier *model.Supplier) (*model.Supplier, *httperors.HttpError) {

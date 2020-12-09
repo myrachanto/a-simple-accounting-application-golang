@@ -64,8 +64,7 @@ func (taxRepo taxrepo) GetOption()([]model.Tax, *httperors.HttpError){
 	GormDB.Model(&tax).Find(&taxs)
 	return taxs, nil
 }
-func (taxRepo taxrepo) GetAll(search string) ([]model.Tax, *httperors.HttpError) {
-
+func (taxRepo taxrepo) GetAll(search string, page,pagesize int) ([]model.Tax, *httperors.HttpError) {
 	results := []model.Tax{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -74,7 +73,8 @@ func (taxRepo taxrepo) GetAll(search string) ([]model.Tax, *httperors.HttpError)
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil

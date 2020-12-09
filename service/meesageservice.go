@@ -34,12 +34,9 @@ func (service messageService) GetOne(id int) (*model.Message, *httperors.HttpErr
 	return message, nil
 }
 
-func (service messageService) GetAll(search string) ([]model.Message, *httperors.HttpError) {
-	results, err := r.Messagerepo.GetAll(search)
-	if err != nil {
-		return nil, err
-	}
-	return results, nil
+func (service messageService) GetAll(search string, page,pagesize int) ([]model.Message, *httperors.HttpError) {
+	results, err := r.Messagerepo.GetAll(search, page,pagesize)
+	return results, err
 }
 func (service messageService) Update(id int, message *model.Message) (*model.Message, *httperors.HttpError) {
 	message, err1 := r.Messagerepo.Update(id, message)

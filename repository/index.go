@@ -16,7 +16,7 @@ var (
 "greater_than":">","less_than_or_equal_to":"<=","greater_than_ro_equal_to":">=",
 "like":"like","between":"between","in":"in","not_in":"not_in"}
 )
-
+//Layout ...
 const (
 	Layout = "2006-01-02"
 	layoutUS  = "January 2, 2006"
@@ -98,3 +98,23 @@ func (indexRepo indexRepo) Getconnected() (GormDB *gorm.DB, err *httperors.HttpE
 func (indexRepo indexRepo) DbClose(GormDB *gorm.DB) {
 	// defer GormDB.Close()
 }
+//Paginate the data from backend
+func Paginate(page, pagesize int) func(GormDB *gorm.DB) *gorm.DB {
+  return func (GormDB *gorm.DB) *gorm.DB {
+    if page == 0 {
+      page = 1
+    }
+    switch {
+    case pagesize > 100:
+      pagesize = 100
+    case pagesize <= 0:
+      pagesize = 10
+    }
+
+    offset := (page - 1) * pagesize
+    return GormDB.Offset(offset).Limit(pagesize)
+  }
+}
+
+// db.Scopes(Paginate(r)).Find(&users)
+// db.Scopes(Paginate(r)).Find(&articles)

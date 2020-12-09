@@ -58,7 +58,7 @@ func (service expencetrasanService) UpdateTrans( name, code string) (string, *ht
 	return cart, nil
 }
 func (service expencetrasanService) GetAll(expencetrasans []model.Expencetrasan,search *support.Search) ([]model.Expencetrasan, *httperors.HttpError) {
-	expencetrasans, err := r.Expencetrasanrepo.GetAll(expencetrasans,search)
+	expencetrasans, err := r.Expencetrasanrepo.All()
 	if err != nil {
 		return nil, err
 	}

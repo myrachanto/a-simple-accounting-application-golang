@@ -115,7 +115,7 @@ func (productRepo productrepo) GetProducts(products []model.Product,search *supp
 		}
 	return results, nil
 }
-func (productRepo productrepo) GetAll(search string) ([]model.Product, *httperors.HttpError) {
+func (productRepo productrepo) GetAll(search string, page,pagesize int) ([]model.Product, *httperors.HttpError) {
 	results := []model.Product{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -124,7 +124,8 @@ func (productRepo productrepo) GetAll(search string) ([]model.Product, *httperor
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil

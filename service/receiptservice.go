@@ -58,7 +58,7 @@ func (service receiptservice) AddReceiptTrans(clientcode,invoicecode,usercode,re
 	options, err1 := r.Receiptrepo.AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode,amount)
 	return options, err1
 }
-func (service receiptservice) ViewInvoices(customercode string) ([]model.Invoice, *httperors.HttpError) {
+func (service receiptservice) ViewInvoices(customercode string) (*model.ReceiptAlloc, *httperors.HttpError) {
 	invoices, err1 := r.Receiptrepo.ViewInvoices(customercode)
 	if err1 != nil {
 		return nil, err1

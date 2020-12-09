@@ -49,7 +49,7 @@ func (cartRepo cartrepo) Create(cart *model.Cart) (string, *httperors.HttpError)
 	cart.Tax = taxamount
 	name := cart.Name
 	cart.Discountpercent = dis
-	cart.Taxpercent = tx
+	cart.Taxpercent = tx  
 	cart.Discount = discountamount
 
 	ok := Productrepo.Productexist(name)
@@ -78,6 +78,9 @@ func (cartRepo cartrepo) Create(cart *model.Cart) (string, *httperors.HttpError)
 	product := Productrepo.Productqty(name)
 	if cart.Quantity > product.Quantity {
 		return "", httperors.NewNotFoundError("please that more than we have in stock")
+	}
+	if cart.SPrice < product.BPrice {
+		return "", httperors.NewNotFoundError("please that price wont do its less than buying price")
 	}
 	GormDB.Create(&cart)
 	IndexRepo.DbClose(GormDB)
@@ -229,7 +232,7 @@ func (cartRepo cartrepo) Update(qty float64, name,code string) (string, *httpero
 	transaction := model.Transaction{}
 	transaction.Total = tot
 	transaction.Subtotal = grossamount
-	transaction.Tax = taxamount
+	transaction.Tax = taxamount 
 	transaction.Discount = discountamount
 	transaction.Code = code
 	transaction.Productname = name

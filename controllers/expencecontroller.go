@@ -9,7 +9,7 @@ import(
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/service"
 )
- 
+ //ExpenceController ...
 var (
 	ExpenceController expenceController = expenceController{}
 )
@@ -29,13 +29,23 @@ func (controller expenceController) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdexpence)
 }
 func (controller expenceController) GetAll(c echo.Context) error {
-
 	search := string(c.QueryParam("q"))
-	expences, err3 := service.ExpenceService.GetAll(search)
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid page number")
+		return c.JSON(httperror.Code, httperror)
+	}
+	pagesize, err := strconv.Atoi(c.QueryParam("pagesize"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid pagesize")
+		return c.JSON(httperror.Code, httperror)
+	}
+	
+	results, err3 := service.ExpenceService.GetAll(search, page,pagesize)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}
-	return c.JSON(http.StatusOK, expences)
+	return c.JSON(http.StatusOK, results)
 } 
 func (controller expenceController) GetOne(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))

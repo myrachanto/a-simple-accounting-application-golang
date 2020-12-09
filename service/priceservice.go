@@ -41,8 +41,8 @@ func (service priceService) GetOne(id int) (*model.Price, *httperors.HttpError) 
 	return price, nil
 }
 
-func (service priceService) GetAll(search string) ([]model.Price, *httperors.HttpError) {
-	results, err := r.Pricerepo.GetAll(search)
+func (service priceService) GetAll(search string, page,pagesize int) ([]model.Price, *httperors.HttpError) {
+	results, err := r.Pricerepo.GetAll(search, page,pagesize)
 	return results, err
 }
 

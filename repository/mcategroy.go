@@ -42,7 +42,7 @@ func (majorcategoryRepo majorcategoryrepo) GetOne(id int) (*model.Majorcategory,
 	return &majorcategory, nil
 }
 
-func (majorcategoryRepo majorcategoryrepo) GetAll(search string) ([]model.Majorcategory, *httperors.HttpError) {
+func (majorcategoryRepo majorcategoryrepo) GetAll(search string, page,pagesize int) ([]model.Majorcategory, *httperors.HttpError) {
 	results := []model.Majorcategory{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -51,7 +51,8 @@ func (majorcategoryRepo majorcategoryrepo) GetAll(search string) ([]model.Majorc
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil

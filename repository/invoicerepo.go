@@ -33,6 +33,7 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (string, *httperor
 	fmt.Println(tex, t.Total, ep)
 	invoice.Expences = ep
 	invoice.Total = tex
+	invoice.Balance = tex
 	// cart := Cartrepo.Getcustomerwithcode(code)
 	// invoice.Customername = cart.Customername
 	customername := invoice.Customername 
@@ -55,7 +56,7 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (string, *httperor
 		return "", e
 	}
 	
-	if invoice.Customername == "undefined" && invoice.Customername == "" {
+	if invoice.Customername == "" {
 		return "", httperors.NewNotFoundError("Please choose a Customer name!")
 		
 	}
@@ -250,7 +251,7 @@ func (invoiceRepo invoicerepo) InvoiceByCustomercodenotpaid(code string) (t []mo
 	if err1 != nil {
 		return nil, err1
 	}
-	GormDB.Model(&invoice).Where("customercode = ? AND allpaidstatus = ?", code, "notpaid").Find(&t)
+	GormDB.Model(&invoice).Where("customercode = ? AND paidstatus = ?", code, "notpaid").Or("customercode = ? AND paidstatus = ?", code, "partialpaid").Find(&t)
 	// fmt.Println(t)
 	IndexRepo.DbClose(GormDB)
 	return t, nil
@@ -537,6 +538,7 @@ fmt.Println(tax, discount, total)
 	invoice.Tax = tax
 	invoice.Subtotal = (total-tax+discount)
 	invoice.Total = total
+	invoice.Balance = total
 	invoice.Cn = true
 	trans := model.Transaction{}
 		////////////begin transaction/////////////////////
@@ -555,7 +557,7 @@ fmt.Println(tax, discount, total)
 				product := Productrepo.Productqty(c.Productname)
 				remaining := product.Quantity + c.Quantity
 				tx.Transaction(func(tx3 *gorm.DB) error {
-					fmt.Println("level 3")
+					fmt.Println("level 3") 
 					tx3.Model(&product).Where("name = ?", product.Name).Update("quantity",remaining)
 					return nil
 				})
@@ -563,7 +565,7 @@ fmt.Println(tax, discount, total)
 			for _, t := range transactions {
 				tx.Transaction(func(tx4 *gorm.DB) error {
 					fmt.Println("level 4")
-					tx4.Model(&trans).Where("code = ? AND productname = ? AND total > ?", code, t.Productname, 0).Select("credit", "status").UpdateColumns(model.Transaction{Credit: true, Status: "credit"})
+					tx4.Model(&trans).Where("code = ? AND productname = ? AND total < ?", code, t.Productname, 0).Select("credit", "status").UpdateColumns(model.Transaction{Credit: true, Status: "credit"})
 					return nil
 				})
 			}

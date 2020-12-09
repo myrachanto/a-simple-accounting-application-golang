@@ -86,7 +86,7 @@ func (priceRepo pricerepo) GetOptionsell(id int)([]model.Price, *httperors.HttpE
 	GormDB.Where("id = ? AND buy = ? ", id, false).Find(&prices)
 	return prices, nil
 }
-func (priceRepo pricerepo) GetAll(search string) ([]model.Price, *httperors.HttpError) {
+func (priceRepo pricerepo) GetAll(search string, page,pagesize int) ([]model.Price, *httperors.HttpError) {
 	results := []model.Price{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -95,7 +95,8 @@ func (priceRepo pricerepo) GetAll(search string) ([]model.Price, *httperors.Http
 	if search == ""{
 		GormDB.Find(&results)
 	}
-	GormDB.Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
 	IndexRepo.DbClose(GormDB)
 	return results, nil
