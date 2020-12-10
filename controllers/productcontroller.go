@@ -63,7 +63,7 @@ func (controller productController) Create(c echo.Context) error {
 				httperror := httperors.NewBadRequestError("error filling")
 				return c.JSON(httperror.Code, httperror)
 			}
-		}
+		} 
 		
 	product.Picture = pic.Filename
 	createdproduct, err1 := service.Productservice.Create(product)
@@ -72,7 +72,24 @@ func (controller productController) Create(c echo.Context) error {
 	} 
 	return c.JSON(http.StatusCreated, createdproduct)
 }
-
+func (controller productController) UpdateQty(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid ID")
+		return c.JSON(httperror.Code, httperror)
+	}
+	quantity, err := strconv.ParseFloat(c.FormValue("quantity"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid quantity")
+		return c.JSON(httperror.Code, httperror)
+	}
+	usercode := c.FormValue("usercode")
+	updateduser, problem := service.Productservice.UpdateQty(id,quantity, usercode)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, updateduser)
+}
 func (controller productController) View(c echo.Context) error {
 	options, problem := service.Productservice.View()
 	if problem != nil {

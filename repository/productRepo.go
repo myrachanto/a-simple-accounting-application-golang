@@ -131,6 +131,22 @@ func (productRepo productrepo) GetAll(search string, page,pagesize int) ([]model
 	return results, nil
 }
 
+func (productRepo productrepo) UpdateQty(id int,quantity float64, usercode string) (string, *httperors.HttpError) {
+	product := model.Product{}
+	ok := Productrepo.ProductUserExistByid(id)
+	if !ok {
+		return "", httperors.NewNotFoundError("Product with that id does not exists!")
+	}
+	
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	GormDB.Model(&product).Where("id = ?", id).Update("quantity",quantity)
+	IndexRepo.DbClose(GormDB)
+
+	return "user updated succesifully", nil
+}
 func (productRepo productrepo) Update(id int, product *model.Product) (*model.Product, *httperors.HttpError) {
 	ok := productRepo.ProductUserExistByid(id)
 	if !ok {

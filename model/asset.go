@@ -7,7 +7,9 @@ import (
 //Asset ...
 type Asset struct {
 	Name string `gorm:"not null" json:"name"`
-	Description string `gorm:"not null" json:"description"`
+	Assetcode string `json:"assetcode"`
+	Pincode string `json:"pin"`
+	Description string ` json:"description"`
 	Ownership string `gorm:"not null" json:"ownership"`
 	Asstrans []Asstrans `gorm:"not null" json:"asstrans"`
 	Price float64 `gorm:"not null" json:"price"`
@@ -16,6 +18,7 @@ type Asset struct {
 	ExpectedUsage float64 `gorm:"not null" json:"expected usage"`
 	Liscence string `gorm:"not null" json:"liscence"`
 	Usercode string `json:"usercode"`
+	Picture string `json:"picture"`
 	gorm.Model
 }
 //Validate ...

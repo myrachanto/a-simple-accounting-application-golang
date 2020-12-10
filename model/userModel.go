@@ -23,6 +23,8 @@ type User struct {
 	Email string `gorm:"not null;unique" json:"email"`
 	Password string `gorm:"not null" json:"password"`
 	Admin bool `json:"admin"`
+	Employee bool `json:"employee"`
+	Supervisor bool `json:"supervisor"`
 	Message []*Message `gorm:"many2many:user_messages;"`
 	Nortification []*Nortification `gorm:"many2many:user_nortifications;"`
 	gorm.Model
@@ -36,6 +38,8 @@ type Auth struct {
 	Picture string `json:"picture"`
 	Token string `gorm:"size:500;not null"`
 	Admin bool `json:"admin"`
+	Employee bool `json:"employee"`
+	Supervisor bool `json:"supervisor"`
 	gorm.Model
 }
 //LoginUser ..
@@ -50,6 +54,8 @@ type Token struct {
 	Email  string `json:"email"`
 	Usercode string `json:"usercode"`
 	Admin bool `json:"admin"`
+	Employee bool `json:"employee"`
+	Supervisor bool `json:"supervisor"`
 	*jwt.StandardClaims
 }
 //ValidateEmail ..

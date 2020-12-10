@@ -8,16 +8,23 @@ import (
 type Expencetrasan struct {
 	Name string `gorm:"not null" json:"name"`
 	ExpenceID uint  `json:"expenceID"`
-	Code string `json:"code"`
-	Usercode string `json:"usercode"`
-	Mode string `json:"mode"`
+	Code string `json:"code"`//expencecode, assetcode, liacode
+	Type string `json:"type"` 
+	Mode string `json:"mode"` //active or canceled
+	Direct string `json:"direct"` //inderect expence or direct expence
 	Title string `gorm:"not null" json:"title"`
 	Description string `gorm:"not null" json:"description"`
 	Amount float64 `gorm:"not null" json:"amount"`
-	Status bool `gorm:"not null" json:"status"`
+	Usercode string `json:"usercode"`
+	Status string `gorm:"not null" json:"status"`//type expence or asset purchase or liability payment
 	Paid string `gorm:"not null" json:"paid"`
-	Type string `json:"type"`
 	gorm.Model
+}
+//ExpencetransView ...
+type ExpencetransView struct {
+Expence []Expence `json:"expences"`
+Liability []Liability `json:"liabilitys"`
+Asset []Asset `json:"assets"`
 }
 //ExpencesView ...
 type ExpencesView struct {
@@ -25,6 +32,7 @@ type ExpencesView struct {
 	Totalexpences SalesModule `json:"total"`
 	Directexpences SalesModule `json:"directexpences"`
 	InDirectexpences SalesModule `json:"indirectexpences"`
+	Other SalesModule `json:"others"`
 }
 //Validate ...
 func (expence Expencetrasan) Validate() *httperors.HttpError{ 

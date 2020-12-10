@@ -18,15 +18,54 @@ type liabilityController struct{ }
 func (controller liabilityController) Create(c echo.Context) error {
 	liability := &model.Liability{}
 	
-	if err := c.Bind(liability); err != nil {
-		httperror := httperors.NewBadRequestError("Invalid json body")
+	liability.Name = c.FormValue("name")
+	liability.Description = c.FormValue("description")
+	liability.Creditor = c.FormValue("creditor")
+	liability.Approvedby = c.FormValue("approvedby")
+	liability.Usercode = c.FormValue("usercode")
+	liability.LiaCode = c.FormValue("code")
+	a, err := strconv.ParseFloat(c.FormValue("amount"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid selling price")
 		return c.JSON(httperror.Code, httperror)
-	}	
+	}
+	liability.Amount = a
+	i, err := strconv.ParseFloat(c.FormValue("interestrate"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid selling price")
+		return c.JSON(httperror.Code, httperror)
+	}
+	liability.Interestrate = i
+	p, err := strconv.ParseFloat(c.FormValue("paymentperiod"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid selling price")
+		return c.JSON(httperror.Code, httperror)
+	}
+	liability.Paymentperiod = p
+	ai, err := strconv.ParseFloat(c.FormValue("amountinterest"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid selling price")
+		return c.JSON(httperror.Code, httperror)
+	}
+	liability.Amoutinterest = ai
+	mp, err := strconv.ParseFloat(c.FormValue("monthlypayment"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid selling price")
+		return c.JSON(httperror.Code, httperror)
+	}
+	liability.Monthlypayment = mp
 	createdliability, err1 := service.Liabilityservice.Create(liability)
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)
 	}
 	return c.JSON(http.StatusCreated, createdliability)
+}
+func (controller liabilityController) View(c echo.Context) error {
+	code, problem := service.Liabilityservice.View()
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, code)	
 }
 func (controller liabilityController) GetAll(c echo.Context) error {
 	

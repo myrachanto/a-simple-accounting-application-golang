@@ -59,6 +59,7 @@ func StoreAPI(){
 	JWTgroup.GET("logout/:token", controllers.UserController.Logout)
 	JWTgroup.GET("users", controllers.UserController.GetAll)
 	JWTgroup.GET("users/:id", controllers.UserController.GetOne)
+	JWTgroup.PUT("users/role/:id", controllers.UserController.UpdateRole)
 	JWTgroup.PUT("users/:id", controllers.UserController.Update)
 	JWTgroup.DELETE("users/:id", controllers.UserController.Delete)
 
@@ -112,6 +113,7 @@ func StoreAPI(){
 	JWTgroup.GET("searchproducts", controllers.ProductController.SearchProduct)
 	e.GET("products/:id", controllers.ProductController.GetOne)
 	JWTgroup.GET("products/:id", controllers.ProductController.GetOne)
+	JWTgroup.PUT("products/quantity/:id", controllers.ProductController.UpdateQty)
 	JWTgroup.PUT("products/:id", controllers.ProductController.Update)
 	JWTgroup.DELETE("products/:id", controllers.ProductController.Delete)
 	///////////cart/////////////////////////////	
@@ -209,7 +211,8 @@ func StoreAPI(){
 	JWTgroup.POST("payrecpt", controllers.PayrectrasanController.Create)
 	// JWTgroup.GET("payrecpt", controllers.PayrectrasanController.GetAll)
 	JWTgroup.GET("payrecpt/:id", controllers.PayrectrasanController.GetOne)
-	///////////Assets/////////////////////////////////////////////////////
+	///////////Assets///////////////////////////////////////////////////// 
+	JWTgroup.GET("assets/view", controllers.AssetController.View)
 	JWTgroup.POST("assets", controllers.AssetController.Create)
 	JWTgroup.GET("assets", controllers.AssetController.GetAll)
 	JWTgroup.GET("assets/:id", controllers.AssetController.GetOne)
@@ -218,6 +221,7 @@ func StoreAPI(){
 	JWTgroup.GET("assetstransactions", controllers.AsstransController.GetAll)
 	JWTgroup.GET("assetstransactions/:id", controllers.AsstransController.GetOne)
 	///////////Assets///////////////////////////////////////////////////// 
+	JWTgroup.GET("liability/view", controllers.LiabilityController.View)
 	JWTgroup.POST("liability", controllers.LiabilityController.Create)
 	JWTgroup.GET("liability", controllers.LiabilityController.GetAll)
 	JWTgroup.GET("liability/:id", controllers.LiabilityController.GetOne)
@@ -234,9 +238,12 @@ func StoreAPI(){
 	JWTgroup.DELETE("expence/:id", controllers.ExpenceController.Delete)
 	///////////expencetans/////////////////////////////////////////////////////
 	JWTgroup.POST("expencetransanctions", controllers.ExpencetrasanController.Create)
+	JWTgroup.POST("expencetransanctions/create", controllers.ExpencetrasanController.CreateExp)
 	JWTgroup.GET("expencetransanctions", controllers.ExpencetrasanController.GetAll)
 	JWTgroup.GET("expencetransanctions/report", controllers.ExpencetrasanController.ViewReport)
+	JWTgroup.GET("expencetransanctions/view", controllers.ExpencetrasanController.ViewExp)
 	JWTgroup.GET("expencetransanctions/views/:code", controllers.ExpencetrasanController.View)
+	JWTgroup.GET("expencetransanctions/views", controllers.ExpencetrasanController.ViewExp)
 	JWTgroup.GET("expencetransanctions/:id", controllers.ExpencetrasanController.GetOne)
 	JWTgroup.POST("expence/transaction", controllers.ExpencetrasanController.UpdateTrans)
 	JWTgroup.DELETE("expencetransanctions/:id", controllers.ExpencetrasanController.Delete)

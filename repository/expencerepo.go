@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"strconv"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 )
@@ -20,6 +21,11 @@ func (expenceRepo expencerepo) Create(expence *model.Expence) (*model.Expence, *
 	if err1 != nil {
 		return nil, err1
 	}
+	code, x := expenceRepo.GeneCode()
+	if x != nil {
+		return nil, x
+	}
+	expence.ExpenceCode = code
 	GormDB.Create(&expence)
 	IndexRepo.DbClose(GormDB)
 	return expence, nil
@@ -103,7 +109,7 @@ func (expenceRepo expencerepo)ProductUserExistByid(id int) bool {
 	expence := model.Expence{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-		return false
+		return false 
 	}
 	res := GormDB.First(&expence, "id =?", id)
 	if res.Error != nil {
@@ -111,5 +117,23 @@ func (expenceRepo expencerepo)ProductUserExistByid(id int) bool {
 	}
 	IndexRepo.DbClose(GormDB)
 	return true
+	
+}
+func (expenceRepo expencerepo)GeneCode() (string, *httperors.HttpError) {
+	ex := model.Expence{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	err := GormDB.Last(&ex)
+	if err.Error != nil {
+		var c1 uint = 1
+		code := "ExpenceCode"+strconv.FormatUint(uint64(c1), 10)
+		return code, nil
+	 }
+	c1 := ex.ID + 1
+	code := "ExpenceCode"+strconv.FormatUint(uint64(c1), 10)
+	IndexRepo.DbClose(GormDB)
+	return code, nil
 	
 }

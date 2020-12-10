@@ -1,14 +1,12 @@
 package repository
 
 import (
-	"fmt"
-	"strings"
+	"strconv"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
-	"github.com/myrachanto/accounting/support"
 )
 //Assetrepo...
-var (
+var ( 
 	Assetrepo assetrepo = assetrepo{}
 )
 ///curtesy to gorm
@@ -22,6 +20,11 @@ func (assetRepo assetrepo) Create(asset *model.Asset) (*model.Asset, *httperors.
 	if err1 != nil {
 		return nil, err1
 	}
+	code, x := assetRepo.GeneCode()
+	if x != nil {
+		return nil, x
+	}
+	asset.Assetcode = code
 	GormDB.Create(&asset)
 	IndexRepo.DbClose(GormDB)
 	return asset, nil
@@ -36,6 +39,14 @@ func (assetRepo assetrepo) All() (t []model.Asset, r *httperors.HttpError) {
 	GormDB.Model(&asset).Find(&t)
 	return t, nil
 
+}
+func (assetRepo assetrepo) View() (string, *httperors.HttpError) {
+	
+	code,err4 := Assetrepo.GeneCode()
+	if err4 != nil {
+		return "", httperors.NewNotFoundError("You got an error fetching customers")
+	}
+	return code, nil
 }
 func (assetRepo assetrepo) GetOne(id int) (*model.Asset, *httperors.HttpError) {
 	ok := assetRepo.ProductUserExistByid(id)
@@ -54,11 +65,19 @@ func (assetRepo assetrepo) GetOne(id int) (*model.Asset, *httperors.HttpError) {
 	return &asset, nil
 }
 
-func (assetRepo assetrepo) GetAll(assets []model.Asset,search *support.Search) ([]model.Asset, *httperors.HttpError) {
-	results, err1 := assetRepo.Search(search, assets)
+func (assetRepo assetrepo) GetAll(search string, page,pagesize int) ([]model.Asset, *httperors.HttpError) {
+	results := []model.Asset{}
+	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-			return nil, err1
-		}
+		return nil, err1
+	}
+	if search == ""{
+		GormDB.Find(&results)
+	}
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Or("ownership LIKE ?", "%"+search+"%").Find(&results)
+
+	IndexRepo.DbClose(GormDB)
 	return results, nil
 }
 
@@ -134,68 +153,21 @@ func (assetRepo assetrepo)ProductUserExistByid(id int) bool {
 	return true
 	
 }
-
-func (assetRepo assetrepo) Search(Ser *support.Search, assets []model.Asset)([]model.Asset, *httperors.HttpError){
+func (assetRepo assetrepo)GeneCode() (string, *httperors.HttpError) {
+	asset := model.Asset{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-		return nil, err1
+		return "", err1
 	}
-	asset := model.Asset{}
-	switch(Ser.Search_operator){
-	case "all":
-		GormDB.Model(&asset).Order(Ser.Column+" "+Ser.Direction).Find(&assets)
-		
-	break;
-	case "equal_to":
-		GormDB.Preload("Asstranss").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&assets);
-		
-	break;
-	case "not_equal_to":
-		GormDB.Preload("Asstranss").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&assets);	
-		
-	break;
-	case "less_than" :
-		GormDB.Preload("Asstranss").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&assets);	
-		
-	break;
-	case "greater_than":
-		GormDB.Preload("Asstranss").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&assets);	
-		
-	break;
-	case "less_than_or_equal_to":
-		GormDB.Preload("Asstranss").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&assets);	
-		
-	break;
-	case "greater_than_ro_equal_to":
-		GormDB.Preload("Asstranss").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&assets);	
-		
-	break;
-		 case "in":
-			// db.Where("name IN (?)", []string{"myrachanto", "anto"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		fmt.Println(s)
-		GormDB.Preload("Asstranss").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"(?)", s).Order(Ser.Column+" "+Ser.Direction).Find(&assets);
-		
-		break;
-	 case "not_in":
-			//db.Not("name", []string{"jinzhu", "jinzhu 2"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		GormDB.Preload("Asstranss").Not(Ser.Search_column, s).Order(Ser.Column+" "+Ser.Direction).Find(&assets);
-		
-	// break;
-	case "like":
-		GormDB.Preload("Asstranss").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column+" "+Ser.Direction).Find(&assets);
-		
-	break;
-	case "between":
-		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&users)
-		GormDB.Preload("Asstranss").Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column+" "+Ser.Direction).Find(&assets);
-		
-	   break;
-	default:
-	return nil, httperors.NewNotFoundError("check your operator!")
-	}
+	err := GormDB.Last(&asset)
+	if err.Error != nil {
+		var c1 uint = 1
+		code := "AssetCode"+strconv.FormatUint(uint64(c1), 10)
+		return code, nil
+	 }
+	c1 := asset.ID + 1
+	code := "AssetCode"+strconv.FormatUint(uint64(c1), 10)
 	IndexRepo.DbClose(GormDB)
+	return code, nil
 	
-	return assets, nil
 }

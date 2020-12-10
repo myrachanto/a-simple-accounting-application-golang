@@ -14,7 +14,7 @@ var (
 type liabilityservice struct {
 	
 }
-
+ 
 func (service liabilityservice) Create(liability *model.Liability) (*model.Liability, *httperors.HttpError) {
 	liability, err1 := r.Liabilityrepo.Create(liability)
 	if err1 != nil {
@@ -29,6 +29,11 @@ func (service liabilityservice) GetOne(id int) (*model.Liability, *httperors.Htt
 		return nil, err1
 	}
 	return liability, nil
+}
+
+func (service liabilityservice) View() (*model.LiabiltyView, *httperors.HttpError) {
+	code, err1 := r.Liabilityrepo.View()
+	return code, err1
 }
 
 func (service liabilityservice) GetAll(search string) ([]model.Liability, *httperors.HttpError) {

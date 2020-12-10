@@ -23,11 +23,22 @@ func (expencetrasanRepo expencetrasanrepo) Create(expencetrasan *model.Expencetr
 	expencetrasan.Mode = "invoice"
 	// id := expencetrasan.Expence.ID
 	// expencetrasan.ExpenceID = id 
-	if expencetrasan.Code != "" {
-		expencetrasan.Type = "direct"
-		GormDB.Create(&expencetrasan)
+	expencetrasan.Type = "direct"
+	GormDB.Create(&expencetrasan)
+	IndexRepo.DbClose(GormDB)
+	return expencetrasan, nil
+}
+func (expencetrasanRepo expencetrasanrepo) CreateExp(expencetrasan *model.Expencetrasan) (*model.Expencetrasan, *httperors.HttpError) {
+	if err := expencetrasan.Validate(); err != nil {
+		return nil, err
 	}
-	expencetrasan.Type = "indirect"
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	expencetrasan.Mode = "other"
+	// id := expencetrasan.Expence.ID
+	// expencetrasan.ExpenceID = id
 	GormDB.Create(&expencetrasan)
 	IndexRepo.DbClose(GormDB)
 	return expencetrasan, nil
@@ -44,13 +55,48 @@ func (expencetrasanRepo expencetrasanrepo) GetExpencesByCode(code string) (t []m
 	return t, nil
 
 }
+func (expencetrasanRepo expencetrasanrepo) GetAll(search string, page,pagesize int) ([]model.Expencetrasan, *httperors.HttpError) {
+	results := []model.Expencetrasan{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	if search == ""{
+		GormDB.Find(&results)
+	}
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
 
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+}
 func (expencetrasanRepo expencetrasanrepo) View(code string) ([]model.Expencetrasan, *httperors.HttpError) {
 	mc, e := expencetrasanRepo.Getexpencestrans(code)
 	if e != nil{
 		return nil, e 
 	}
 	return mc, nil
+}
+func (expencetrasanRepo expencetrasanrepo) ViewExp() (*model.ExpencetransView, *httperors.HttpError) {
+
+	expences, err := Expencerepo.All()
+	if err != nil {
+		return nil, err
+	}
+	lias, err := Liabilityrepo.All()
+	if err != nil {
+		return nil, err
+	}
+	
+	assests, err := Assetrepo.All()
+	if err != nil {
+		return nil, err
+	}
+	return &model.ExpencetransView{
+		Expence:expences,
+		Liability:lias,
+		Asset:assests,
+	}, nil
 }
 func (expencetrasanRepo expencetrasanrepo) ViewReport() (*model.ExpencesView, *httperors.HttpError) {
 	expence := model.Expencetrasan{}
@@ -67,14 +113,20 @@ func (expencetrasanRepo expencetrasanrepo) ViewReport() (*model.ExpencesView, *h
 	dexpences := []model.Expencetrasan{}
 	GormDB.Model(&expence).Where("type = ?", "direct").Find(&dexpences)
 	var dtes float64 = 0
-	for _,dte := range expences{
+	for _,dte := range dexpences{
 		dtes += dte.Amount
 	}
 	idexpences := []model.Expencetrasan{}
 	GormDB.Model(&expence).Where("type = ?", "indirect").Find(&idexpences)
 	var idtes float64 = 0
-	for _,idte := range expences{
+	for _,idte := range idexpences{
 		idtes += idte.Amount
+	}
+	other := []model.Expencetrasan{}
+	GormDB.Model(&expence).Where("type = ?", "other").Find(&other)
+	var o float64 = 0
+	for _,ot := range other{
+		o += ot.Amount
 	}
 	z := model.ExpencesView{}
 	z.Expences = expences
@@ -89,6 +141,10 @@ func (expencetrasanRepo expencetrasanrepo) ViewReport() (*model.ExpencesView, *h
 	z.InDirectexpences.Name = "InDirect expences"
 	z.InDirectexpences.Total = idtes
 	z.InDirectexpences.Description = "Total InDirect expences incurred"
+	////////////////////////////////////////////////////////////
+	z.Other.Name = "Other expences"
+	z.Other.Total = o
+	z.Other.Description = "Total Other expences incurred"
 	
 	IndexRepo.DbClose(GormDB)
 	return &z, nil

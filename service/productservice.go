@@ -49,13 +49,18 @@ func (service productservice) GetOne(id int) (*model.Product, *httperors.HttpErr
 	}
 	return product, nil
 }
+
+func (service productservice) UpdateQty(id int,quantity float64, usercode string) (string, *httperors.HttpError) {
+	user, err1 := r.Productrepo.UpdateQty(id,quantity, usercode)
+	return user, err1
+}
 func (service productservice) GetProducts(products []model.Product,search *support.Productsearch) ([]model.Product, *httperors.HttpError) {
 	products, err := r.Productrepo.GetProducts(products,search)
 	if err != nil {
 		return nil, err
 	}
 	return products, nil
-}
+} 
 func (service productservice) GetAll(search string, page,pagesize int) ([]model.Product, *httperors.HttpError) {
 	results, err := r.Productrepo.GetAll(search, page,pagesize)
 	return results, err

@@ -109,6 +109,19 @@ func (userRepo userrepo) Login(auser *model.LoginUser) (*model.Auth, *httperors.
 	
 	return auth, nil
 }
+
+func (userRepo userrepo) All() (t []model.User, r *httperors.HttpError) {
+
+	user := model.User{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&user).Find(&t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
+}
 func (userRepo userrepo) Logout(token string) (*httperors.HttpError) {
 	auth := model.Auth{}
 	GormDB, err1 := IndexRepo.Getconnected()
@@ -126,18 +139,6 @@ func (userRepo userrepo) Logout(token string) (*httperors.HttpError) {
 	IndexRepo.DbClose(GormDB)
 	
 	return  nil
-}
-func (userRepo userrepo) All() (t []model.User, r *httperors.HttpError) {
-
-	user := model.User{}
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1
-	}
-	GormDB.Model(&user).Find(&t)
-	IndexRepo.DbClose(GormDB)
-	return t, nil
-
 }
 func (userRepo userrepo)GeneCode() (string, *httperors.HttpError) {
 	user := model.User{}
@@ -174,14 +175,48 @@ func (userRepo userrepo) GetOne(id int) (*model.User, *httperors.HttpError) {
 	return &user, nil
 }
 
-func (userRepo userrepo) GetAll(users []model.User,search *support.Search) ([]model.User, *httperors.HttpError) {
-	results, err1 := userRepo.Search(search, users)
+func (userRepo userrepo) GetAll(search string, page,pagesize int) ([]model.User, *httperors.HttpError) {
+	results := []model.User{}
+	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-			return nil, err1
-		}
+		return nil, err1
+	}
+	if search == ""{
+		GormDB.Find(&results)
+	}
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("email LIKE ?", "%"+search+"%").Or("company LIKE ?", "%"+search+"%").Find(&results)
+
+	IndexRepo.DbClose(GormDB)
 	return results, nil
 }
 
+func (userRepo userrepo) UpdateRole(id int,role, usercode string) (string, *httperors.HttpError) {
+	user := model.User{}
+	ok := Userrepo.UserExistByid(id)
+	if !ok {
+		return "", httperors.NewNotFoundError("customer with that id does not exists!")
+	}
+	
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+
+	// "employee",
+	// "supervisor",
+	// "admin",
+	if usercode == "employee"{
+		GormDB.Model(&user).Where("id = ?", id).Update("employee",true)
+	}
+	if usercode == "supervisor"{
+		GormDB.Model(&user).Where("id = ?", id).Update("supervisor",true)
+	}
+	GormDB.Model(&user).Where("id = ?", id).Update("admin",true)
+	IndexRepo.DbClose(GormDB)
+
+	return "user updated succesifully", nil
+}
 func (userRepo userrepo) Update(id int, user *model.User) (*model.User, *httperors.HttpError) {
 	ok := userRepo.UserExistByid(id)
 	if !ok {

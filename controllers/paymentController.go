@@ -23,6 +23,8 @@ func (controller paymentController) Create(c echo.Context) error {
 	payment.Description = c.FormValue("description")
 	payment.Type = c.FormValue("type")
 	payment.Code = c.FormValue("code")
+	payment.ChequeNo = c.FormValue("chequeno")
+	ex := c.FormValue("expirydate")
 	d := c.FormValue("clearancedate")
 	fmt.Println(d)
 
@@ -38,6 +40,12 @@ func (controller paymentController) Create(c echo.Context) error {
 		return c.JSON(httperror.Code, httperror)
 	}
 	payment.ClearanceDate = t
+	tx, ers := time.Parse(layoutISO, ex)
+	if ers != nil { 
+		httperror := httperors.NewBadRequestError("Invalid Date")
+		return c.JSON(httperror.Code, httperror)
+	}
+	payment.Expirydate = tx
 		createdpayment, err1 := service.Paymentservice.Create(payment)
 		if err1 != nil {
 			return c.JSON(err1.Code, err1)

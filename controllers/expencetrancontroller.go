@@ -8,7 +8,6 @@ import(
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/service"
-	"github.com/myrachanto/accounting/support"
 )
 //ExpencetrasanController ...
 var (
@@ -37,9 +36,38 @@ func (controller expencetrasanController) Create(c echo.Context) error {
 	}
 	return c.JSON(http.StatusCreated, createdexpencetrasan)
 }
+func (controller expencetrasanController) CreateExp(c echo.Context) error {
+	expencetrasan := &model.Expencetrasan{}
+	
+	expencetrasan.Name = c.FormValue("name")
+	expencetrasan.Title = c.FormValue("title")
+	expencetrasan.Description = c.FormValue("description")
+	expencetrasan.Code = c.FormValue("code")
+	expencetrasan.Type = c.FormValue("status")
+	expencetrasan.Usercode = c.FormValue("usercode")
+
+	s, err := strconv.ParseFloat(c.FormValue("amount"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid selling price")
+		return c.JSON(httperror.Code, httperror)
+	}
+	expencetrasan.Amount = s
+	createdexpencetrasan, err1 := service.ExpencetrasanService.CreateExp(expencetrasan)
+	if err1 != nil {
+		return c.JSON(err1.Code, err1)
+	}
+	return c.JSON(http.StatusCreated, createdexpencetrasan)
+}
 func (controller expencetrasanController) View(c echo.Context) error {
 	code := c.Param("code")
 	options, problem := service.ExpencetrasanService.View(code)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, options)	
+}
+func (controller expencetrasanController) ViewExp(c echo.Context) error {
+	options, problem := service.ExpencetrasanService.ViewExp()
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}
@@ -64,25 +92,24 @@ func (controller expencetrasanController) ViewReport(c echo.Context) error {
 	return c.JSON(http.StatusOK, options)	
 }
 func (controller expencetrasanController) GetAll(c echo.Context) error {
-	expencetrasans := []model.Expencetrasan{}
-	column := string(c.QueryParam("column"))
-	direction := string(c.QueryParam("direction"))
-	search_column := string(c.QueryParam("search_column"))
-	search_operator := string(c.QueryParam("search_operator"))
-	search_query_1 := string(c.QueryParam("search_query_1"))
-	search_query_2 := string(c.QueryParam("search_query_2"))
-	per_page, err := strconv.Atoi(c.QueryParam("per_page"))
+	
+	search := string(c.QueryParam("q"))
+	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid per number")
+		httperror := httperors.NewBadRequestError("Invalid page number")
 		return c.JSON(httperror.Code, httperror)
 	}
-	fmt.Println("------------------------")
-	search := &support.Search{Column:column, Direction:direction,Search_column:search_column,Search_operator:search_operator,Search_query_1:search_query_1,Search_query_2:search_query_2,Per_page:per_page}
-	expencetrasans, err3 := service.ExpencetrasanService.GetAll(expencetrasans,search)
+	pagesize, err := strconv.Atoi(c.QueryParam("pagesize"))
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid pagesize")
+		return c.JSON(httperror.Code, httperror)
+	}
+	
+	results, err3 := service.ExpencetrasanService.GetAll(search, page,pagesize)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}
-	return c.JSON(http.StatusOK, expencetrasans)
+	return c.JSON(http.StatusOK, results)
 } 
 func (controller expencetrasanController) GetOne(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))

@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"github.com/myrachanto/accounting/support"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
@@ -12,15 +11,15 @@ var (
 	UserService userService = userService{}
 
 ) 
-type redirectUser interface{
-	Create(customer *model.User) (*model.User, *httperors.HttpError)
-	Login(auser *model.LoginUser) (*model.Auth, *httperors.HttpError)
-	Logout(token string) (*httperors.HttpError)
-	GetOne(id int) (*model.User, *httperors.HttpError)
-	GetAll(users []model.User, search *support.Search) ([]model.User, *httperors.HttpError)
-	Update(id int, user *model.User) (*model.User, *httperors.HttpError)
-	Delete(id int) (*httperors.HttpSuccess, *httperors.HttpError)
-}
+// type redirectUser interface{
+// 	Create(customer *model.User) (*model.User, *httperors.HttpError)
+// 	Login(auser *model.LoginUser) (*model.Auth, *httperors.HttpError)
+// 	Logout(token string) (*httperors.HttpError)
+// 	GetOne(id int) (*model.User, *httperors.HttpError)
+// 	GetAll(users []model.User, search *support.Search) ([]model.User, *httperors.HttpError)
+// 	Update(id int, user *model.User) (*model.User, *httperors.HttpError)
+// 	Delete(id int) (*httperors.HttpSuccess, *httperors.HttpError)
+// }
 
 
 type userService struct {
@@ -60,12 +59,13 @@ func (service userService) GetOne(id int) (*model.User, *httperors.HttpError) {
 	return user, nil
 }
 
-func (service userService) GetAll(users []model.User, search *support.Search) ([]model.User, *httperors.HttpError) {
-	users, err := r.Userrepo.GetAll(users, search)
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
+func (service userService) GetAll(search string, page,pagesize int) ([]model.User, *httperors.HttpError) {
+	results, err := r.Userrepo.GetAll(search, page,pagesize)
+	return results, err
+}
+func (service userService) UpdateRole(id int,role, usercode string) (string, *httperors.HttpError) {
+	user, err1 := r.Userrepo.UpdateRole(id,role, usercode)
+	return user, err1
 }
 
 func (service userService) Update(id int, user *model.User) (*model.User, *httperors.HttpError) {

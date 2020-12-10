@@ -18,7 +18,13 @@ type Liability struct {
 	Liatran []Liatran `gorm:"not null" json:"liatrans"`
 	Payment []Payment `gorm:"many2many:liabilty_payments"`
 	Usercode string `json:"usercode"`
+	LiaCode string `json:"liacode"`
 	gorm.Model
+}
+//LiabiltyView ...get the data need for liability creation
+type LiabiltyView struct{
+	Code string `json:"code"`
+	Users []User `json:"users"`
 }
 //Validate ..
 func (liability Liability) Validate() *httperors.HttpError{ 

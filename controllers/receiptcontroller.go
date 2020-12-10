@@ -29,6 +29,8 @@ func (controller receiptController) Create(c echo.Context) error {
 	receipt.Code = c.FormValue("code")
 	receipt.Customercode = c.FormValue("customercode")
 	receipt.Usercode = c.FormValue("usercode")
+	receipt.ChequeNo = c.FormValue("chequeno")
+	ex := c.FormValue("expirydate")
 	d := c.FormValue("clearancedate")
 	fmt.Println(d)
 
@@ -44,6 +46,12 @@ func (controller receiptController) Create(c echo.Context) error {
 		return c.JSON(httperror.Code, httperror)
 	}
 	receipt.ClearanceDate = t
+	tx, ers := time.Parse(layoutISO, ex)
+	if ers != nil { 
+		httperror := httperors.NewBadRequestError("Invalid Date")
+		return c.JSON(httperror.Code, httperror)
+	}
+	receipt.Expirydate = tx
 		createdreceipt, err1 := service.Receiptservice.Create(receipt)
 		if err1 != nil {
 			return c.JSON(err1.Code, err1)
