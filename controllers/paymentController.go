@@ -75,7 +75,7 @@ func (controller paymentController) GetAll(c echo.Context) error {
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}
-	return c.JSON(http.StatusOK, payments)
+	return c.JSON(http.StatusOK, payments) 
 } 
 func (controller paymentController) GetOne(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -122,4 +122,38 @@ func (controller paymentController) Delete(c echo.Context) error {
 	}
 	return c.JSON(success.Code, success)
 		
+}
+
+func (controller paymentController) ViewCleared(c echo.Context) error {
+	options, problem := service.Paymentservice.ViewCleared()
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, options)	
+}
+
+func (controller paymentController) ViewInvoices(c echo.Context) error {
+	code := c.Param("code")
+	invoices, problem := service.Paymentservice.ViewInvoices(code)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, invoices)	
+}
+func (controller paymentController) AddPaymentsTrans(c echo.Context) error {
+		
+	clientcode := c.FormValue("suppliercode")
+	icode := c.FormValue("invoicecode")
+	usercode := c.FormValue("usercode")
+	pcode := c.FormValue("paymentcode")
+	amount, err := strconv.ParseFloat(c.FormValue("amount"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid amount")
+		return c.JSON(httperror.Code, httperror)
+	}
+	updatedcart, problem := service.Paymentservice.AddReceiptTrans(clientcode,icode,usercode,pcode,amount)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, updatedcart)
 }

@@ -183,8 +183,11 @@ func StoreAPI(){
 	JWTgroup.GET("payments/view", controllers.PaymentController.View)
 	JWTgroup.GET("payments", controllers.PaymentController.GetAll)
 	JWTgroup.GET("payments/report", controllers.PaymentController.ViewReport)
-	JWTgroup.GET("payments/:id", controllers.PaymentController.GetOne)
 	JWTgroup.POST("payments/transaction", controllers.PaymentController.Updatepayments)
+	JWTgroup.GET("payments/cleared", controllers.PaymentController.ViewCleared)
+	JWTgroup.GET("payments/cleared/:code", controllers.PaymentController.ViewInvoices)
+	JWTgroup.POST("payments/cleared", controllers.PaymentController.AddPaymentsTrans)
+	JWTgroup.GET("payments/:id", controllers.PaymentController.GetOne)
 	// JWTgroup.PUT("payments/:id", controllers.PaymentController.Update)
 	// JWTgroup.DELETE("payments/:id", controllers.PaymentController.Delete)
 	///////////receipts/////////////////////////////////////////////////////
@@ -195,16 +198,16 @@ func StoreAPI(){
 	JWTgroup.GET("receipts/cleared", controllers.ReceiptController.ViewCleared)
 	JWTgroup.GET("receipts/cleared/:customercode", controllers.ReceiptController.ViewInvoices)
 	JWTgroup.POST("receipts/cleared", controllers.ReceiptController.AddReceiptTrans)
-	JWTgroup.GET("receipts/:id", controllers.ReceiptController.GetOne)
 	JWTgroup.POST("receipts/transaction", controllers.ReceiptController.UpdateReceipts)
 	JWTgroup.POST("receipts/allocate", controllers.ReceiptController.AddReceiptTrans)
+	JWTgroup.GET("receipts/:id", controllers.ReceiptController.GetOne)
 	// JWTgroup.PUT("receipts/:id", controllers.ReceiptController.Update) 
 	// JWTgroup.DELETE("receipts/:id", controllers.ReceiptController.Delete)
 	///////////payrecpt/////////////////////////////////////////////////////
 	
 	JWTgroup.GET("Viewspayrecpt", controllers.PayrectrasanController.View)
 	JWTgroup.POST("payrecpt", controllers.PayrectrasanController.Create)
-	JWTgroup.GET("payrecpt", controllers.PayrectrasanController.GetAll)
+	// JWTgroup.GET("payrecpt", controllers.PayrectrasanController.GetAll)
 	JWTgroup.GET("payrecpt/:id", controllers.PayrectrasanController.GetOne)
 	///////////Assets/////////////////////////////////////////////////////
 	JWTgroup.POST("assets", controllers.AssetController.Create)

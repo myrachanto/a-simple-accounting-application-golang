@@ -39,7 +39,7 @@ func (controller receiptController) Create(c echo.Context) error {
 	}
 	receipt.Amount = s
   t, er := time.Parse(layoutISO, d)
-	if er != nil {
+	if er != nil { 
 		httperror := httperors.NewBadRequestError("Invalid Date")
 		return c.JSON(httperror.Code, httperror)
 	}
@@ -67,23 +67,6 @@ func (controller receiptController) AddReceiptTrans(c echo.Context) error {
 	usercode := c.FormValue("usercode")
 	receiptcode := c.FormValue("receiptcode")
 	fmt.Println(receiptcode)
-	amount, err := strconv.ParseFloat(c.FormValue("amount"), 64)
-	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid amount")
-		return c.JSON(httperror.Code, httperror)
-	}
-	updatedcart, problem := service.Receiptservice.AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode,amount)
-	if problem != nil {
-		return c.JSON(problem.Code, problem)
-	}
-	return c.JSON(http.StatusOK, updatedcart)
-}
-func (controller receiptController) Allocate(c echo.Context) error {
-		
-	clientcode := c.FormValue("customercode")
-	invoicecode := c.FormValue("invoicecode")
-	usercode := c.FormValue("usercode")
-	receiptcode := c.FormValue("receiptcode")
 	amount, err := strconv.ParseFloat(c.FormValue("amount"), 64)
 	if err != nil {
 		httperror := httperors.NewBadRequestError("Invalid amount")

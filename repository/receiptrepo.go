@@ -275,7 +275,7 @@ func (receiptRepo receiptrepo) All() (t []model.Receipt, r *httperors.HttpError)
 func (receiptRepo receiptrepo) ViewCleared() ([]model.Receipt, *httperors.HttpError) {
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
-		return nil, err1 
+		return nil, err1  
 	}
 	receipts := model.Receipt{}
 	cleared := []model.Receipt{}

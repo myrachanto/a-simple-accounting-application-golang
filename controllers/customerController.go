@@ -27,6 +27,7 @@ func (controller customerController) Create(c echo.Context) error {
 	customer.Email = c.FormValue("email")
 	customer.Password = c.FormValue("password")
 	customer.Usercode = c.FormValue("usercode")
+	customer.BusinessPIn = c.FormValue("businesspin")
 
 	   pic, err2 := c.FormFile("picture")
 	//    fmt.Println(pic.Filename)
@@ -137,6 +138,7 @@ func (controller customerController) Update(c echo.Context) error {
 	customer.Phone = c.FormValue("phone")
 	customer.Address = c.FormValue("address")
 	customer.Email = c.FormValue("email")
+	customer.BusinessPIn = c.FormValue("businesspin")
 
 	   pic, err2 := c.FormFile("picture")
 	//    fmt.Println(pic.Filename)

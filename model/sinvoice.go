@@ -24,11 +24,13 @@ type SInvoice struct {
 	Expences float64  `json:"expence"`
 	Balance float64 `gorm:"not null" json:"balance"`
 	Status string `gorm:"not null" json:"status"`
-	Cn bool `gorm:"not null" json:"cn"`
+	Cn bool `gorm:"not null" json:"cn"` 
 	STransactionID uint `json:"stransactionid"`
 	Cash string `json:"cash"`
 	Terms string `json:"terms"`
 	Instructions string `json:"instructions"`
+	Paidstatus string `json:"paidstatus"`
+	AllPaidstatus string `json:"allpaidstatus"`
 	Payment []Payment `gorm:"many2many:sinvoice_payments"`
 	Supplier []Supplier `gorm:"many2many:sinvoice_suppliers"`
 	gorm.Model

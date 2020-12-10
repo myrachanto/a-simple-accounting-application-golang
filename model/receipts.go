@@ -18,6 +18,8 @@ type Receipt struct {
 	Paymentform []Paymentform `gorm:"many2many:receipt_paymentforms"`
 	Type string `json:"type"`
 	ClearanceDate time.Time `json:"clearancedate"`
+	ChequeNo string `json:"chequeno"`
+	Expirydate time.Time `json:"expirydate"`
 	Amount float64 `json:"amount"`
 	Status string `json:"status"`
 	Allocated string `json:"allocated"`

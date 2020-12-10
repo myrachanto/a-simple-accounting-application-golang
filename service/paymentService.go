@@ -29,8 +29,26 @@ func (service paymentservice) Updatepayments( code,status string) (string, *http
 	}
 	 
 	return cart, nil
-}
+} 
 
+func (service paymentservice) ViewCleared() ([]model.Payment, *httperors.HttpError) {
+	options, err1 := r.Paymentrepo.ViewCleared()
+	if err1 != nil {
+		return nil, err1
+	}
+	return options, nil
+}
+func (service paymentservice) AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode string ,amount float64) (string, *httperors.HttpError) {
+	options, err1 := r.Paymentrepo.AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode,amount)
+	return options, err1
+}
+func (service paymentservice) ViewInvoices(customercode string) (*model.PaymentAlloc, *httperors.HttpError) {
+	invoices, err1 := r.Paymentrepo.ViewInvoices(customercode)
+	if err1 != nil {
+		return nil, err1
+	}
+	return invoices, nil
+}
 func (service paymentservice) ViewReport() (*model.PaymentReport, *httperors.HttpError) {
 	options, err1 := r.Paymentrepo.ViewReport()
 	if err1 != nil {

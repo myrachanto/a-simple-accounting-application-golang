@@ -5,7 +5,6 @@ import (
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	r "github.com/myrachanto/accounting/repository"
-	"github.com/myrachanto/accounting/support"
 )
 //PayrectrasanService ...
 var (
@@ -39,13 +38,13 @@ func (service payrectrasanService) View() (*model.Roptions, *httperors.HttpError
 	}
 	return code, nil
 }
-func (service payrectrasanService) GetAll(payrectrasans []model.Payrectrasan,search *support.Search) ([]model.Payrectrasan, *httperors.HttpError) {
-	payrectrasans, err := r.Payrectrasanrepo.GetAll(payrectrasans,search)
-	if err != nil {
-		return nil, err
-	}
-	return payrectrasans, nil
-}
+// func (service payrectrasanService) GetAll(payrectrasans []model.Payrectrasan,search *support.Search) ([]model.Payrectrasan, *httperors.HttpError) {
+// 	payrectrasans, err := r.Payrectrasanrepo.All()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return payrectrasans, nil
+// }
 
 func (service payrectrasanService) Update(id int, payrectrasan *model.Payrectrasan) (*model.Payrectrasan, *httperors.HttpError) {
 	payrectrasan, err1 := r.Payrectrasanrepo.Update(id, payrectrasan)

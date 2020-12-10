@@ -19,6 +19,7 @@ type Customer struct {
 	Picture string `json:"picture"`
 	Email string `gorm:"not null;unique" json:"email"`
 	Password string `gorm:"not null"`
+	BusinessPIn string `json:"businsesspin"`
 	Invoices []Invoice `gorm:"foreignKey:CustomerID; not null"`
 	DebtTransactions []*DebtTransaction `gorm:"many2many:customer_debtTransactions;"`
 	gorm.Model

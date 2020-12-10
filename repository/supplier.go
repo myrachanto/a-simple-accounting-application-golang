@@ -220,6 +220,35 @@ func (supplierRepo supplierrepo) AllDebts() (t []model.CreditTransaction, r *htt
 	return t, nil
 
 }
+func (supplierRepo supplierrepo)SupplierExistbycode(code string) bool {
+	supplier := model.Supplier{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return false
+	}
+	GormDB.Where("suppliercode = ? ", code).First(&supplier)
+	if supplier.ID == 0 {
+	   return false
+	}
+	IndexRepo.DbClose(GormDB)
+	return true
+	
+}
+
+func (customerRepo customerrepo)GetsupplierwithCode(code string) *model.Supplier {
+	supplier := model.Supplier{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("suppliercode = ? ", code).First(&supplier)
+	if supplier.Name == "" {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &supplier
+	
+}
 // func (supplierRepo supplierrepo) GetAll(search *support.Search) ([]interface{}, *httperors.HttpError) {
 // 	supplier := model.Supplier{}
 // 	// suppliers := []model.Supplier{}

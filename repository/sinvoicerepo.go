@@ -48,16 +48,18 @@ func (sInvoiceRepo sInvoicerepo) Create(sInvoice *model.SInvoice) (string, *http
 	sInvoice.Discount = t.Discount
 	sInvoice.Tax = t.Tax
 	sInvoice.Subtotal = t.Subtotal
-	sInvoice.Title = "sales"
+	sInvoice.Title = "Purchases"
 	sInvoice.Cn = false
-	sInvoice.Status = "invoice"
+	sInvoice.Status = "Supplier invoice"
+	sInvoice.Paidstatus = "notpaid"
+	sInvoice.AllPaidstatus = "notpaid"
 	sInvoice.Description = "Sale of goods and services"
 
 	transactions, e := Scartrepo.ScarttoTransaction(code)
 	if e != nil {
 		return "", e
 	}
-	if sInvoice.Suppliername == "undefined" && sInvoice.Suppliername == "" {
+	if sInvoice.Suppliername == "" {
 		return "", httperors.NewNotFoundError("Please choose a Supplier name!")
 		
 	}
@@ -172,6 +174,19 @@ func (sInvoiceRepo sInvoicerepo) View() (*model.Sinvoiceoptions, *httperors.Http
 	SIOptions.Paymentform = paymentforms
 	SIOptions.Expences = expences
 	return SIOptions, nil
+}
+func (sInvoiceRepo sInvoicerepo) InvoiceByCustomercodenotpaid(code string) (t []model.SInvoice, r *httperors.HttpError) {
+
+	invoice := model.SInvoice{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	GormDB.Model(&invoice).Where("suppliercode = ? AND paidstatus = ?", code, "notpaid").Or("suppliercode = ? AND paidstatus = ?", code, "partialpaid").Find(&t)
+	// fmt.Println(t)
+	IndexRepo.DbClose(GormDB)
+	return t, nil
+
 }
 func (sInvoiceRepo sInvoicerepo) GetOne(code string) (*model.SInvoiceView, *httperors.HttpError) {
 	ok := sInvoiceRepo.SInvoiceExistByCode(code)
@@ -611,4 +626,18 @@ func (sInvoiceRepo sInvoicerepo) GeneCode() (string, *httperors.HttpError) {
 	IndexRepo.DbClose(GormDB)
 	return code, nil
 
+}
+func (sInvoiceRepo sInvoicerepo)GetInvoicebyCode(code string) *model.SInvoice {
+	invoice := model.SInvoice{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("code = ? ", code).First(&invoice)
+	if invoice.ID == 0 {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &invoice
+	
 }

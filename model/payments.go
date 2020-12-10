@@ -12,6 +12,8 @@ type Payment struct {
 	Usercode string `json:"usercode"`
 	Description string `json:"description"` 
 	Code string `json:"code"`
+	ChequeNo string `json:"chequeno"`
+	Expirydate time.Time `json:"expirydate"`
 	SupplierID uint `json:"supplierrid"`
 	Supplier Supplier  `json:"supplier"`
 	SInvoice []SInvoice `gorm:"many2many:payment_sinvoices"`
@@ -22,6 +24,7 @@ type Payment struct {
 	ClearanceDate time.Time `json:"clearancedate"`
 	Amount float64 `json:"amount"`
 	Status string `json:"status"`
+	Allocated string `json:"allocated"`
 	gorm.Model 
 }
 //PaymentReport ...
@@ -43,6 +46,11 @@ type PaymentOptions struct {
 	ClearedPayments []Payment `json:"cleared"`
 	PendingPayments []Payment `json:"pending"`
 	CanceledPayments []Payment `json:"canceled"`
+}
+//PaymentAlloc ..structure to gather dat for payments allocation
+type PaymentAlloc struct {
+	Payment *Payment `json:"payment"`
+	SInvoice []SInvoice `json:"sinvoices"` //unpaid invoices
 }
 //Validate ..
 func (payments Payment) Validate() *httperors.HttpError{ 

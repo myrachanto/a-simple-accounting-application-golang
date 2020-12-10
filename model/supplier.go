@@ -17,6 +17,7 @@ type Supplier struct {
 	Phone string `gorm:"not null" json:"phone"`
 	Address string `gorm:"not null" json:"address"`
 	Picture string `json:"picture"`
+	BusinessPIn string `json:"businsesspin"`
 	Email string `gorm:"not null;unique" json:"email"`
 	Password string `gorm:"not null"`
 	SInvoices []SInvoice `gorm:"many2many:supplier_sinvoices"`

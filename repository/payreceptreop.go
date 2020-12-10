@@ -1,11 +1,8 @@
 package repository
 
 import (
-	"fmt"
-	"strings"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
-	"github.com/myrachanto/accounting/support"
 )
 //Payrectrasanrepo ...
 var (
@@ -62,13 +59,6 @@ func (payrectrasanRepo payrectrasanrepo) GetOne(id int) (*model.Payrectrasan, *h
 	return &payrectrasan, nil
 }
 
-func (payrectrasanRepo payrectrasanrepo) GetAll(payrectrasans []model.Payrectrasan,search *support.Search) ([]model.Payrectrasan, *httperors.HttpError) {
-	results, err1 := payrectrasanRepo.Search(search, payrectrasans)
-	if err1 != nil {
-			return nil, err1
-		}
-	return results, nil
-}
 
 func (payrectrasanRepo payrectrasanrepo) Update(id int, payrectrasan *model.Payrectrasan) (*model.Payrectrasan, *httperors.HttpError) {
 	ok := payrectrasanRepo.ProductUserExistByid(id)
@@ -127,71 +117,4 @@ func (payrectrasanRepo payrectrasanrepo)ProductUserExistByid(id int) bool {
 	IndexRepo.DbClose(GormDB)
 	return true
 	
-}
-
-func (payrectrasanRepo payrectrasanrepo) Search(Ser *support.Search, payrectrasans []model.Payrectrasan)([]model.Payrectrasan, *httperors.HttpError){
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1
-	}
-	payrectrasan := model.Payrectrasan{}
-	switch(Ser.Search_operator){
-	case "all":
-	GormDB.Model(&payrectrasan).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans)
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		///////////////find some other paginator more effective one///////////////////////////////////////////
-	
-	break;
-	case "equal_to":
-	GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);
-	
-	break;
-	case "not_equal_to":
-	GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);	
-	
-	break;
-	case "less_than" :
-	GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);	
-	
-	break;
-	case "greater_than":
-	GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);	
-	
-	break;
-	case "less_than_or_equal_to":
-	GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);	
-	
-	break;
-	case "greater_than_ro_equal_to":
-	GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);	
-	
-	break;
-		 case "in":
-			// db.Where("name IN (?)", []string{"myrachanto", "anto"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		fmt.Println(s)
-	GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"(?)", s).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);
-	
-		break;
-	 case "not_in":
-			//db.Not("name", []string{"jinzhu", "jinzhu 2"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-	GormDB.Not(Ser.Search_column, s).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);
-	
-	// break;
-	case "like":
-	GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);
-	
-	break;
-	case "between":
-		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&users)
-	GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column+" "+Ser.Direction).Find(&payrectrasans);
-	
-	   break;
-	default:
-	return nil, httperors.NewNotFoundError("check your operator!")
-	}
-	IndexRepo.DbClose(GormDB)
-	
-	return payrectrasans, nil
 }

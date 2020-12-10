@@ -2,12 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
 	"gorm.io/gorm"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
-	"github.com/myrachanto/accounting/support"
 )
 //Paymentrepo ...
 var (
@@ -24,6 +22,7 @@ func (paymentRepo paymentrepo) Create(payment *model.Payment) (*model.Payment, *
 	} 
 	sup := Supplierrepo.Getsupplier(payment.SupplierName)
 	payment.Suppliercode = sup.Suppliercode
+	payment.Allocated = "notallocated"
 	paymentform := model.Paymentform{}
 	p := model.Paymentform{}
 	if (payment.Status == "cleared"){
@@ -63,6 +62,108 @@ func (paymentRepo paymentrepo) GetOne(id int) (*model.Payment, *httperors.HttpEr
 	
 	return &payment, nil
 }
+
+func (paymentRepo paymentrepo) AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode string ,amount float64) (string, *httperors.HttpError) {
+	ok := Supplierrepo.SupplierExistbycode(clientcode)
+	if !ok {
+		return "", httperors.NewNotFoundError("That customer does not exist")
+	}
+	supplier := Supplierrepo.Getsupplierwithcode(clientcode)
+	ok = SInvoicerepo.SInvoiceExistByCode(invoicecode)
+	if !ok {
+		return "", httperors.NewNotFoundError("That invoice does not exist")
+	}
+	
+	invo := SInvoicerepo.GetInvoicebyCode(invoicecode)
+	stats := ""
+	if invo.Total == amount {
+		stats = "fullypaid"
+	}
+	stats = "partialpaid"
+	ok = Paymentrepo.ReceiptExistByCode(receiptcode)
+	if !ok {
+		return "", httperors.NewNotFoundError("That receipt does not exist")
+	}
+	payment := Paymentrepo.GetpaymentwithCode(receiptcode)
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	transact := model.Payrectrasan{}
+	transact.Name = supplier.Name
+	transact.Title = "Payments"
+	transact.Description = "Payments to  Supplier"
+	transact.CLientcode = clientcode
+	transact.Invoicecode = invoicecode
+	transact.Amount = amount
+	transact.Usercode = usercode
+	transact.Paymentform = payment.Type
+	transact.Status = stats
+	paymentf := Paymentformrepo.GetPaymantformbyname(payment.Type)
+
+	invoic := model.SInvoice{}
+	paymentform := model.Paymentform{}
+	reciep := model.Payment{}
+	////////////begin transaction/////////////////////
+	GormDB.Transaction(func(tx *gorm.DB) error {
+		
+		fmt.Println("level 1")
+		tx.Create(&transact)
+
+		
+		tx.Transaction(func(tx2 *gorm.DB) error { 
+		
+			fmt.Println("level 2")
+			bal := invo.Total - amount
+			tx2.Model(&invoic).Where("code = ?", invoicecode).Updates(model.SInvoice{Paidstatus: stats, AllPaidstatus: stats, AmountPaid: amount, Balance:bal})
+			return nil
+		})
+			remaining := paymentf.Amount - amount
+			tx.Transaction(func(tx4 *gorm.DB) error {
+				fmt.Println("level 4")
+				tx4.Model(&paymentform).Where("paymentcode = ?", paymentf.Paymentcode).Update("amount",remaining)
+				return nil
+			})
+			tx.Transaction(func(tx4 *gorm.DB) error {
+				fmt.Println("level 4")
+				tx4.Model(&reciep).Where("code = ?", receiptcode).Update("allocated","allocated")
+				return nil
+			})
+			return nil
+		})
+	
+	IndexRepo.DbClose(GormDB)
+	return "transaction completed succesifully", nil
+}
+func (paymentRepo paymentrepo) ReceiptExistByCode(code string) bool {
+	r := model.Payment{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return false
+	}
+
+	GormDB.Where("code = ? ", code).First(&r)
+	if r.ID == 0 {
+		return false
+	}
+	IndexRepo.DbClose(GormDB)
+	return true
+
+}
+func (paymentRepo paymentrepo)GetpaymentwithCode(code string) *model.Payment {
+	p := model.Payment{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("code = ? ", code).First(&p)
+	if p.ID == 0 {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &p
+	
+}
 func (paymentRepo paymentrepo) Updatepayments(code,status string) (string, *httperors.HttpError) {
 	ok := Paymentrepo.paymentExistByCode(code)
 	if ok == false {
@@ -97,6 +198,48 @@ func (paymentRepo paymentrepo) Updatepayments(code,status string) (string, *http
 	
 	IndexRepo.DbClose(GormDB)
 	return "payment updated succesifully", nil
+}
+func (paymentRepo paymentrepo) ViewCleared() ([]model.Payment, *httperors.HttpError) {
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1  
+	}
+	payment := model.Payment{}
+	cleared := []model.Payment{}
+	GormDB.Model(&payment).Where("status = ? AND allocated = ?", "cleared", "notallocated").Find(&cleared)
+	IndexRepo.DbClose(GormDB)
+	return cleared, nil
+
+}
+func (paymentRepo paymentrepo) ViewInvoices(code string) (*model.PaymentAlloc, *httperors.HttpError) {
+	fmt.Println(code)
+	rec := Paymentrepo.GetreceiptwithCode(code)
+	if rec == nil {
+		return nil, httperors.NewNotFoundError("That Payment does not exist")
+	}
+	invoices, err := SInvoicerepo.InvoiceByCustomercodenotpaid(rec.Suppliercode)
+	if err != nil {
+		return nil,err
+	}
+	
+	return &model.PaymentAlloc{
+		Payment: rec,
+		SInvoice:invoices,
+	}, nil
+}
+func (paymentRepo paymentrepo)GetreceiptwithCode(code string) *model.Payment {
+	payment := model.Payment{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("code = ? ", code).First(&payment)
+	if payment.ID == 0 {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &payment
+	
 }
 func (paymentRepo paymentrepo) paymentExistByCode(code string) bool {
 	r := model.Payment{}
@@ -297,77 +440,4 @@ func (paymentRepo paymentrepo)GeneCode() (string, *httperors.HttpError) {
 	IndexRepo.DbClose(GormDB)
 	return code, nil
 	
-}
-func (paymentRepo paymentrepo) Search(Ser *support.Search, payments []model.Payment)([]model.Payment, *httperors.HttpError){
-	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
-		return nil, err1
-	}
-	payment := model.Payment{}
-	switch(Ser.Search_operator){
-	case "all":
-		GormDB.Model(&payment).Order(Ser.Column+" "+Ser.Direction).Find(&payments)
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		///////////////find some other paginator more effective one///////////////////////////////////////////
-		
-	break;
-	case "equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payments);
-		
-	break;
-	case "not_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payments);	
-		
-	break;
-	case "less_than" :
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payments);	
-		
-	break;
-	case "greater_than":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payments);	
-		
-	break;
-	case "less_than_or_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payments);	
-		
-	break;
-	case "greater_than_ro_equal_to":
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", Ser.Search_query_1).Order(Ser.Column+" "+Ser.Direction).Find(&payments);	
-		
-	break;
-		 case "in":
-			// db.Where("name IN (?)", []string{"myrachanto", "anto"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		fmt.Println(s)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"(?)", s).Order(Ser.Column+" "+Ser.Direction).Find(&payments);
-		
-		break;
-	 case "not_in":
-			//db.Not("name", []string{"jinzhu", "jinzhu 2"}).Find(&users)
-		s := strings.Split(Ser.Search_query_1,",")
-		GormDB.Not(Ser.Search_column, s).Order(Ser.Column+" "+Ser.Direction).Find(&payments);
-		
-	// break;
-	case "like":
-		// fmt.Println(Ser.Search_query_1)
-		if Ser.Search_query_1 == "all" {
-			//db.Order("name DESC")
-			GormDB.Order(Ser.Column + " " + Ser.Direction).Find(&payments)
-
-		} else {
-
-			GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"?", "%"+Ser.Search_query_1+"%").Order(Ser.Column + " " + Ser.Direction).Find(&payments)
-		}
-		break
-	case "between":
-		//db.Where("name BETWEEN ? AND ?", "lastWeek, today").Find(&users)
-		GormDB.Where(Ser.Search_column+" "+Operator[Ser.Search_operator]+"? AND ?", Ser.Search_query_1, Ser.Search_query_2).Order(Ser.Column+" "+Ser.Direction).Find(&payments);
-		
-	   break;
-	default:
-	return nil, httperors.NewNotFoundError("check your operator!")
-	}
-	IndexRepo.DbClose(GormDB)
-	
-	return payments, nil
 }
