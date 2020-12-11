@@ -121,8 +121,11 @@ func (controller supplierController) GetOne(c echo.Context) error {
 		httperror := httperors.NewBadRequestError("Invalid ID")
 		return c.JSON(httperror.Code, httperror)
 	}
-	fmt.Println(id)
-	supplier, problem := service.Supplierservice.GetOne(id)
+	
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	supplier, problem := service.Supplierservice.GetOne(id,dated,searchq2,searchq3)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}

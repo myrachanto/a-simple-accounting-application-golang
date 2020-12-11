@@ -35,8 +35,8 @@ func (service supplierservice) Logout(token string) (*httperors.HttpError) {
 	err1 := r.Supplierrepo.Logout(token)
 	return err1
 }
-func (service supplierservice) GetOne(id int) (*model.Supplierdetails, *httperors.HttpError) {
-	supplier, err1 := r.Supplierrepo.GetOne(id)
+func (service supplierservice) GetOne(id int, dated,searchq2,searchq3 string) (*model.Supplierdetails, *httperors.HttpError) {
+	supplier, err1 := r.Supplierrepo.GetOne(id,dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}

@@ -122,8 +122,10 @@ func (controller customerController) GetOne(c echo.Context) error {
 		httperror := httperors.NewBadRequestError("Invalid ID")
 		return c.JSON(httperror.Code, httperror)
 	}
-	fmt.Println(id)
-	customer, problem := service.Customerservice.GetOne(id)
+	dated := c.QueryParam("dated") 
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	customer, problem := service.Customerservice.GetOne(id,dated,searchq2,searchq3)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}
@@ -182,7 +184,11 @@ func (controller customerController) Update(c echo.Context) error {
 }
 
 func (controller customerController) ViewReport(c echo.Context) error {
-	options, problem := service.Customerservice.ViewReport()
+
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	options, problem := service.Customerservice.ViewReport(dated,searchq2,searchq3)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}

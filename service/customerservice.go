@@ -49,16 +49,16 @@ func (service customerservice) Logout(token string) (*httperors.HttpError) {
 	}
 	return nil
 }
-func (service customerservice) GetOne(id int) (*model.Customerdetails, *httperors.HttpError) {
-	customer, err1 := r.Customerrepo.GetOne(id)
+func (service customerservice) GetOne(id int,dated,searchq2,searchq3 string) (*model.Customerdetails, *httperors.HttpError) {
+	customer, err1 := r.Customerrepo.GetOne(id,dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}
 	return customer, nil
 }
 
-func (service customerservice) ViewReport() (*model.CustomerView, *httperors.HttpError) {
-	options, err1 := r.Customerrepo.ViewReport()
+func (service customerservice) ViewReport(dated,searchq2,searchq3 string) (*model.CustomerView, *httperors.HttpError) {
+	options, err1 := r.Customerrepo.ViewReport(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}

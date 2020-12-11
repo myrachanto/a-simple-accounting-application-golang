@@ -82,6 +82,7 @@ func (cartRepo cartrepo) Create(cart *model.Cart) (string, *httperors.HttpError)
 	if cart.SPrice < product.BPrice {
 		return "", httperors.NewNotFoundError("please that price wont do its less than buying price")
 	}
+	cart.Productcode = product.Productcode
 	GormDB.Create(&cart)
 	IndexRepo.DbClose(GormDB)
 	return "Item added successifully to the cart", nil
@@ -372,7 +373,7 @@ func (cartRepo cartrepo)CarttoTransaction(code string) (tr []model.Transaction, 
 	GormDB.Where("code = ?", code).Find(&carts)
 	IndexRepo.DbClose(GormDB)
 	for _, c := range carts {
-		trans := model.Transaction{Productname :c.Name, Title:"Product sale", Usercode:c.Usercode, Customercode:c.Customercode, Quantity: c.Quantity, Price: c.SPrice,Tax:c.Tax, Code:code, Subtotal:c.Subtotal, Discount:c.Discount,Total:c.Total}
+		trans := model.Transaction{Productname :c.Name, Title:"Product sale", Usercode:c.Usercode, Customercode:c.Customercode, Quantity: c.Quantity, Price: c.SPrice,Tax:c.Tax,Productcode: c.Productcode, Code:code, Subtotal:c.Subtotal, Discount:c.Discount,Total:c.Total}
 		tr = append(tr, trans)
 	}
 	return tr,nil

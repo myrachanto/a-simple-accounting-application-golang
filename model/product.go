@@ -32,6 +32,12 @@ type Info struct {
 	Majorcategory []Majorcategory `gorm:"foreignKey:Majorcategoryies; not null"`
 	Subcategory []Subcategory `gorm:"foreignKey:Subcategories; not null"`
 }
+//ProductView ...
+ type ProductView struct {
+	 Product Product `json:"product"`
+	 Sold []Transaction `json:"sold"`
+	 Bought []STransaction `json:"bought"`
+ }
 //Options stuff required to create a product...
 type Options struct {
 	Price []Price `gorm:"foreignKey:prices; not null"`

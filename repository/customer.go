@@ -129,11 +129,12 @@ func (customerRepo customerrepo) Forgot(email string) (string, *httperors.HttpEr
 	
 	return "Email sent!", nil
 }
-func (customerRepo customerrepo) GetOne(id int) (*model.Customerdetails, *httperors.HttpError) {
+func (customerRepo customerrepo) GetOne(id int,dated,searchq2,searchq3 string) (*model.Customerdetails, *httperors.HttpError) {
 	ok := customerRepo.customerExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("customer with that id does not exists!")
 	} 
+	fmt.Println(dated,searchq2,searchq3)
 	customer := model.Customer{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
@@ -142,12 +143,12 @@ func (customerRepo customerrepo) GetOne(id int) (*model.Customerdetails, *httper
 	GormDB.Model(&customer).Where("id = ?", id).First(&customer)
 	IndexRepo.DbClose(GormDB)
 	// invoices, e := Invoicerepo.Customerinvoice(customer.Name)
-	invoices, e := Invoicerepo.Customerinvoicebycode(customer.Customercode)
+	invoices, e := Invoicerepo.Customerinvoicebycode(customer.Customercode,dated,searchq2,searchq3)
 	if e != nil {
 		return nil, e
 	}
 	// credits, er := Invoicerepo.CustomerCredits(customer.Name)
-	credits, er := Invoicerepo.CustomerCreditsbycode(customer.Customercode)
+	credits, er := Invoicerepo.CustomerCreditsbycode(customer.Customercode,dated,searchq2,searchq3)
 	if er != nil {
 		return nil, er
 	}
@@ -193,6 +194,46 @@ func (customerRepo customerrepo) All() (t []model.Customer, r *httperors.HttpErr
 	GormDB.Model(&customer).Find(&t)
 	IndexRepo.DbClose(GormDB)
 	return t, nil
+
+}
+func (customerRepo customerrepo) AllSearch(dated,searchq2,searchq3 string) (results []model.Customer, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	if dated != "custom"{ 
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("updated_at BETWEEN ? AND ?",start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
 
 }
 func (customerRepo customerrepo)GeneCode() (string, *httperors.HttpError) {
@@ -310,12 +351,12 @@ func (customerRepo customerrepo)GetcustomerwithCode(code string) *model.Customer
 	return &customer
 	
 }
-func (customerRepo customerrepo) ViewReport() (*model.CustomerView, *httperors.HttpError) {
+func (customerRepo customerrepo) ViewReport(dated,searchq2,searchq3 string) (*model.CustomerView, *httperors.HttpError) {
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
-	customers, er := Customerrepo.All()
+	custs, er := Customerrepo.AllSearch(dated,searchq2,searchq3)
 	if er != nil {
 		return nil, er
 	}
@@ -330,9 +371,9 @@ func (customerRepo customerrepo) ViewReport() (*model.CustomerView, *httperors.H
 	GormDB.Model(&customer).Where("updated_at > ?", today).Find(&todaycustomers)
 	
 	z := model.CustomerView{}
-	z.Customers = customers
+	z.Customers = custs
 	z.AllCustomers.Name = "All customers"
-	z.AllCustomers.Total = float64(len(customers))
+	z.AllCustomers.Total = float64(len(custs))
 	z.AllCustomers.Description = "Total Customers registered"
 	//////////////////////////////////////////////////////////////
 	z.Lastweek.Name = "Last 7 days Customers"

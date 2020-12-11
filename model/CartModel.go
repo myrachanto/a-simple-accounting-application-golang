@@ -7,6 +7,7 @@ import (
 type Cart struct {
 	Product  []*Product `gorm:"many2many:cart_products;"`
 	Code string `json:"code" json:"code"`
+	Productcode string `json:"productcode"`
 	Name string `gorm:"not null" json:"name"`
 	Customername string `gorm:"not null" json:"customername"`
 	Customercode string `json:"customercode"`
@@ -28,6 +29,7 @@ type Scart struct {
 	Product  []*Product `gorm:"many2many:scart_products;"`
 	Code string `json:"code" json:"code"`
 	Name string `gorm:"not null" json:"name"`
+	Productcode string `json:"productcode"`
 	Suppliername string `gorm:"not null" json:"suppliername"`
 	Suppliercode string `json:"suppliercode"`
 	Usercode string `json:"usercode"`

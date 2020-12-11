@@ -7,6 +7,7 @@ import (
 type STransaction struct {
 	Product []*Product `gorm:"many2many:stransaction_products;"`
 	Productname string `json:"name"`
+	Productcode string `json:"productcode"`
 	SInvoiceID uint  `json:"sinvoiceid"`
 	Credit bool  `json:"Good return note"`
 	Code string `gorm:"not null" json:"code"`

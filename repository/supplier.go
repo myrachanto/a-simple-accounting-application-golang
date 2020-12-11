@@ -130,19 +130,20 @@ func (supplierRepo supplierrepo) Forgot(email string) (string, *httperors.HttpEr
 	
 	return "Email sent!", nil
 }
-func (supplierRepo supplierrepo) GetOne(id int) (*model.Supplierdetails, *httperors.HttpError) {
+func (supplierRepo supplierrepo) GetOne(id int,dated,searchq2,searchq3 string) (*model.Supplierdetails, *httperors.HttpError) {
 	ok := supplierRepo.SupplierExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("supplier with that id does not exists!")
-	}  
+	}   
+
 	supplier := Supplierrepo.Getsupplierbyid(id)
 	// invoices, e := SInvoicerepo.SuppliersInvoice(supplier.Name)
-	invoices, e := SInvoicerepo.SuppliersInvoicebycode(supplier.Suppliercode)
+	invoices, e := SInvoicerepo.SuppliersInvoicebycode(supplier.Suppliercode,dated,searchq2,searchq3)
 	if e != nil {
 		return nil, e
 	}
 	// credits, er := SInvoicerepo.SupplierCredits(supplier.Name)
-	credits, er := SInvoicerepo.SupplierCreditsbycode(supplier.Suppliercode)
+	credits, er := SInvoicerepo.SupplierCreditsbycode(supplier.Suppliercode,dated,searchq2,searchq3)
 	if er != nil {
 		return nil, er
 	}

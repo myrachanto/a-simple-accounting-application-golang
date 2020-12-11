@@ -75,11 +75,9 @@ func (scartRepo scartrepo) Create(scart *model.Scart) (string, *httperors.HttpEr
 	if ok != true {
 		return "", httperors.NewNotFoundError("Please select the same Supplier in this invoice!")
 	}
-	// product := Productrepo.Productqty(name)
-	// if scart.Quantity > product.Quantity {
-	// 	return "", httperors.NewNotFoundError("please that more than we have in stock")
-	// }
-	fmt.Println(scart)
+	product := Productrepo.Productqty(name)
+	
+	scart.Productcode = product.Productcode
 	GormDB.Create(&scart)
 	IndexRepo.DbClose(GormDB)
 	return "Item added successifully to the scart", nil
@@ -370,7 +368,7 @@ func (scartRepo scartrepo)ScarttoTransaction(code string) (tr []model.STransacti
 	GormDB.Where("code = ?", code).Find(&scarts)
 	IndexRepo.DbClose(GormDB)
 	for _, c := range scarts {
-		trans := model.STransaction{Productname :c.Name, Title:"Product sale", Quantity: c.Quantity, Suppliercode:c.Suppliercode,Usercode:c.Usercode, Price: c.BPrice,Tax:c.Tax, Code:code, Subtotal:c.Subtotal, Discount:c.Discount,Total:c.Total}
+		trans := model.STransaction{Productname :c.Name, Title:"Product sale", Quantity: c.Quantity, Productcode: c.Productcode, Suppliercode:c.Suppliercode,Usercode:c.Usercode, Price: c.BPrice,Tax:c.Tax, Code:code, Subtotal:c.Subtotal, Discount:c.Discount,Total:c.Total}
 		tr = append(tr, trans)
 	}
 	return tr,nil

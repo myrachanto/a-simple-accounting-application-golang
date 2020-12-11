@@ -61,7 +61,7 @@ func (controller sInvoiceController) GetAll(c echo.Context) error {
 	dated := string(c.QueryParam("dated"))
 	searchq2 := string(c.QueryParam("searchq2"))
 	searchq3 := string(c.QueryParam("searchq3"))
-	
+
 	sInvoices, err3 := service.SInvoiceservice.GetAll(search,dated,searchq2,searchq3)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)

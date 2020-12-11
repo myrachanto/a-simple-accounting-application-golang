@@ -11,7 +11,6 @@ import(
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 	"github.com/myrachanto/accounting/service"
-	"github.com/myrachanto/accounting/support"
 )
  
 var (
@@ -116,27 +115,27 @@ func (controller productController) SearchProduct(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, options)	
 }
-func (controller productController) GetProducts(c echo.Context) error {
-	products := []model.Product{}	
-	column := string(c.QueryParam("column"))
-	name := string(c.QueryParam("name"))
-	search_column := string(c.QueryParam("search_column"))
-	search_operator := string(c.QueryParam("search_operator"))
-	search_query_1 := string(c.QueryParam("search_query_1"))
-	per_page, err := strconv.Atoi(c.QueryParam("per_page"))
-	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid per number")
-		return c.JSON(httperror.Code, httperror)
-	}
-	fmt.Println("------------------------")
-	search := &support.Productsearch{Column:column,Name:name,Search_column:search_column,Search_operator:search_operator,Search_query_1:search_query_1,Per_page:per_page}
+// func (controller productController) GetProducts(c echo.Context) error {
+// 	products := []model.Product{}	
+// 	column := string(c.QueryParam("column"))
+// 	name := string(c.QueryParam("name"))
+// 	search_column := string(c.QueryParam("search_column"))
+// 	search_operator := string(c.QueryParam("search_operator"))
+// 	search_query_1 := string(c.QueryParam("search_query_1"))
+// 	per_page, err := strconv.Atoi(c.QueryParam("per_page"))
+// 	if err != nil {
+// 		httperror := httperors.NewBadRequestError("Invalid per number")
+// 		return c.JSON(httperror.Code, httperror)
+// 	}
+// 	fmt.Println("------------------------")
+// 	search := &support.Productsearch{Column:column,Name:name,Search_column:search_column,Search_operator:search_operator,Search_query_1:search_query_1,Per_page:per_page}
 	
-	products, err3 := service.Productservice.GetProducts(products, search)
-	if err3 != nil {
-		return c.JSON(err3.Code, err3)
-	}
-	return c.JSON(http.StatusOK, products)
-} 
+// 	products, err3 := service.Productservice.GetProducts(products, search)
+// 	if err3 != nil {
+// 		return c.JSON(err3.Code, err3)
+// 	}
+// 	return c.JSON(http.StatusOK, products)
+// } 
 func (controller productController) GetAll(c echo.Context) error {
 	
 	search := string(c.QueryParam("q"))
@@ -163,8 +162,10 @@ func (controller productController) GetOne(c echo.Context) error {
 		httperror := httperors.NewBadRequestError("Invalid ID")
 		return c.JSON(httperror.Code, httperror)
 	}
-	fmt.Println(id)
-	product, problem := service.Productservice.GetOne(id)
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	product, problem := service.Productservice.GetOne(id,dated,searchq2,searchq3)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}

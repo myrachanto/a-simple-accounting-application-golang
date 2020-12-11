@@ -7,6 +7,7 @@ import (
 type Transaction struct {
 	Product []*Product `gorm:"many2many:transaction_products;"`
 	Productname string `json:"name"`
+	Productcode string `json:"productcode"`
 	InvoiceID uint  `json:"invoiceid"`
 	Credit bool  `json:"credit note"`
 	Code string `gorm:"not null" json:"code"`
