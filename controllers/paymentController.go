@@ -18,7 +18,7 @@ type paymentController struct{ }
 /////////controllers/////////////////
 func (controller paymentController) Create(c echo.Context) error {
 	payment := &model.Payment{}
-	payment.SupplierName = c.FormValue("suppliername")
+	payment.ItemName = c.FormValue("suppliername")
 	payment.Status = c.FormValue("status")
 	payment.Description = c.FormValue("description")
 	payment.Type = c.FormValue("type")
@@ -54,7 +54,10 @@ func (controller paymentController) Create(c echo.Context) error {
 }
 
 func (controller paymentController) ViewReport(c echo.Context) error {
-	options, problem := service.Paymentservice.ViewReport()
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	options, problem := service.Paymentservice.ViewReport(dated,searchq2,searchq3)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}
@@ -77,9 +80,21 @@ func (controller paymentController) View(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, code)	
 }
+
+func (controller paymentController) ViewExpence(c echo.Context) error {
+	code, problem := service.Paymentservice.ViewExpence()
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, code)	
+}
 func (controller paymentController) GetAll(c echo.Context) error {
 	
-	payments, err3 := service.Paymentservice.GetAll()
+		
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	payments, err3 := service.Paymentservice.GetAll(dated,searchq2,searchq3)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}

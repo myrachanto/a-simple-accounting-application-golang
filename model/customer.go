@@ -57,6 +57,16 @@ type Customerdetails struct {
 	Invoices []Invoice `json:"invoices"`
 	Credits []Invoice `json:"credits"`
 }
+//CustomerStatement ..
+type CustomerStatement struct {
+	Code string `json:"code"`
+	Description string `json:"description"`
+	Amount float64 `json:"amount"`
+	Status float64 `json:"status"`
+	Total float64 `json:"total"`
+	Mode float64 `json:"mode"`
+
+}
 //ValidateEmail ...
 func (customer Customer)ValidateEmail(email string) (matchedString bool) {
 	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&amp;'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")

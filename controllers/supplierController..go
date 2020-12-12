@@ -114,9 +114,9 @@ func (controller supplierController) GetAll(c echo.Context) error {
 		return c.JSON(err3.Code, err3)
 	}
 	return c.JSON(http.StatusOK, results)
-} 
+} 	
 func (controller supplierController) GetOne(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id")) 
 	if err != nil {
 		httperror := httperors.NewBadRequestError("Invalid ID")
 		return c.JSON(httperror.Code, httperror)
@@ -185,7 +185,10 @@ func (controller supplierController) Update(c echo.Context) error {
 }
 
 func (controller supplierController) ViewReport(c echo.Context) error {
-	options, problem := service.Supplierservice.ViewReport()
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	options, problem := service.Supplierservice.ViewReport(dated,searchq2,searchq3)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}

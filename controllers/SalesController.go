@@ -13,7 +13,10 @@ type salesController struct{ }
 /////////controllers/////////////////
 func (controller salesController) View(c echo.Context) error {
 		
-	createdsales, err1 := service.Salesservice.View()
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	createdsales, err1 := service.Salesservice.View(dated,searchq2,searchq3)
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)
 	}
@@ -21,12 +24,26 @@ func (controller salesController) View(c echo.Context) error {
 }
 func (controller salesController) Purchases(c echo.Context) error {
 		
-	createdsales, err1 := service.Salesservice.Purchases()
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	createdsales, err1 := service.Salesservice.Purchases(dated,searchq2,searchq3)
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)
 	}
 	return c.JSON(http.StatusOK, createdsales)
 }
+// func (controller salesController) Customer(c echo.Context) error {
+		
+// 	dated := c.QueryParam("dated")
+// 	searchq2 := c.QueryParam("searchq2")
+// 	searchq3 := c.QueryParam("searchq3")
+// 	createdsales, err1 := service.Salesservice.Customer(dated,searchq2,searchq3)
+// 	if err1 != nil {
+// 		return c.JSON(err1.Code, err1)
+// 	}
+// 	return c.JSON(http.StatusOK, createdsales)
+// }
 // func (controller salesController) Email(c echo.Context) error {
 // 	saless, err3 := service.salesservice.Email()
 // 	if err3 != nil {

@@ -16,8 +16,8 @@ type dashboardservice struct {
 	
 }
 
-func (service dashboardservice) View() (*model.Dashboard, *httperors.HttpError) {
-	dashboard, err1 := r.Dashboardrepo.View()
+func (service dashboardservice) View(dated,searchq2,searchq3 string) (*model.Dashboard, *httperors.HttpError) {
+	dashboard, err1 := r.Dashboardrepo.View(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}

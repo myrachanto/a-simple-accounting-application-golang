@@ -49,8 +49,8 @@ func (service paymentservice) ViewInvoices(customercode string) (*model.PaymentA
 	}
 	return invoices, nil
 }
-func (service paymentservice) ViewReport() (*model.PaymentReport, *httperors.HttpError) {
-	options, err1 := r.Paymentrepo.ViewReport()
+func (service paymentservice) ViewReport(dated,searchq2,searchq3 string) (*model.PaymentReport, *httperors.HttpError) {
+	options, err1 := r.Paymentrepo.ViewReport(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -58,6 +58,13 @@ func (service paymentservice) ViewReport() (*model.PaymentReport, *httperors.Htt
 }
 func (service paymentservice) View() (*model.PaymentView, *httperors.HttpError) {
 	code, err1 := r.Paymentrepo.View()
+	if err1 != nil {
+		return nil, err1
+	}
+	return code, nil
+}
+func (service paymentservice) ViewExpence() (*model.PaymentExpence, *httperors.HttpError) {
+	code, err1 := r.Paymentrepo.ViewExpence()
 	if err1 != nil {
 		return nil, err1
 	}
@@ -71,8 +78,8 @@ func (service paymentservice) GetOne(id int) (*model.Payment, *httperors.HttpErr
 	return payment, nil
 }
 
-func (service paymentservice) GetAll() (*model.PaymentOptions, *httperors.HttpError) {
-	payments, err := r.Paymentrepo.GetAll()
+func (service paymentservice) GetAll(dated,searchq2,searchq3 string) (*model.PaymentOptions, *httperors.HttpError) {
+	payments, err := r.Paymentrepo.GetAll(dated,searchq2,searchq3)
 	if err != nil {
 		return nil, err
 	}

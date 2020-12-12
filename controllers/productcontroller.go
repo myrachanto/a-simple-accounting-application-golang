@@ -137,7 +137,7 @@ func (controller productController) SearchProduct(c echo.Context) error {
 // 	return c.JSON(http.StatusOK, products)
 // } 
 func (controller productController) GetAll(c echo.Context) error {
-	
+	 
 	search := string(c.QueryParam("q"))
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
@@ -156,6 +156,16 @@ func (controller productController) GetAll(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, results)
 } 
+func (controller productController) ViewReport(c echo.Context) error {
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	options, problem := service.Productservice.ViewReport(dated,searchq2,searchq3)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, options)	
+}
 func (controller productController) GetOne(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

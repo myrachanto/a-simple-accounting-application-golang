@@ -18,21 +18,21 @@ type salesrepo struct{}
 //////////////
 ////////////TODO user id///////////
 /////////////////////////////////////////
-func (salesRepo salesrepo) View()(*model.Sales, *httperors.HttpError) {
+func (salesRepo salesrepo) View(dated,searchq2,searchq3 string)(*model.Sales, *httperors.HttpError) {
 	sales := model.Sales{}
 	invoices,err5 := Invoicerepo.All()
 	if err5 != nil {
 		return nil, err5
 	}
-	paidinvoices,err4 := Invoicerepo.PaidInvoices()
+	paidinvoices,err4 := Invoicerepo.PaidInvoices(dated,searchq2,searchq3)
 	if err4 != nil {
 		return nil, err4
 	}
-	debts,err3 := Customerrepo.AllDebts()
+	debts,err3 := Customerrepo.AllDebts(dated,searchq2,searchq3)
 	if err3 != nil {
 		return nil, err3
 	}
-	transactions,err2 := Transactionrepo.All()
+	transactions,err2 := Transactionrepo.Allsearch(dated,searchq2,searchq3)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -83,21 +83,21 @@ func (salesRepo salesrepo) View()(*model.Sales, *httperors.HttpError) {
 	sales.DebtTransactions = debts
 	return &sales, nil
 }
-func (salesRepo salesrepo) Purchases()(*model.Purchases, *httperors.HttpError) {
+func (salesRepo salesrepo) Purchases(dated,searchq2,searchq3 string)(*model.Purchases, *httperors.HttpError) {
 	purchases := model.Purchases{}
-	invoices,err5 := SInvoicerepo.All()
+	invoices,err5 := SInvoicerepo.AllSearch(dated,searchq2,searchq3)
 	if err5 != nil {
 		return nil, err5
 	}
-	paidinvoices,err4 := SInvoicerepo.PaidsInvoices()
+	paidinvoices,err4 := SInvoicerepo.PaidsInvoices(dated,searchq2,searchq3)
 	if err4 != nil {
 		return nil, err4
 	}
-	debts,err3 := Supplierrepo.AllDebts()
+	debts,err3 := Supplierrepo.AllDebts(dated,searchq2,searchq3)
 	if err3 != nil {
 		return nil, err3
 	}
-	transactions,err2 := STransactionrepo.All()
+	transactions,err2 := STransactionrepo.Allsearch(dated,searchq2,searchq3)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -143,6 +143,11 @@ func (salesRepo salesrepo) Purchases()(*model.Purchases, *httperors.HttpError) {
 	purchases.CreditTransaction = debts
 	return &purchases, nil
 }
+
+// func (salesRepo salesrepo) Purchases(dated,searchq2,searchq3 string)(*model.Purchases, *httperors.HttpError) {
+
+// 	return &purchases, nil
+// }
 // func (salesRepo salesrepo) Email() (*model.Email, *httperors.HttpError) {
 	
 // 	email := model.Email{}

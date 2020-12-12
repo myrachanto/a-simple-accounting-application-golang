@@ -43,8 +43,8 @@ func (service supplierservice) GetOne(id int, dated,searchq2,searchq3 string) (*
 	return supplier, nil
 }
 
-func (service supplierservice) ViewReport() (*model.SupplierView, *httperors.HttpError) {
-	options, err1 := r.Supplierrepo.ViewReport()
+func (service supplierservice) ViewReport(dated,searchq2,searchq3 string) (*model.SupplierView, *httperors.HttpError) {
+	options, err1 := r.Supplierrepo.ViewReport(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}

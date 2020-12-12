@@ -148,13 +148,17 @@ func (controller userController) GetAll(c echo.Context) error {
 	return c.JSON(http.StatusOK, results)
 } 
 func (controller userController) GetOne(c echo.Context) error {
+		
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		httperror := httperors.NewBadRequestError("Invalid ID")
 		return c.JSON(httperror.Code, httperror)
 	}
 	fmt.Println(id)
-	user, problem := service.UserService.GetOne(id)
+	user, problem := service.UserService.GetOne(id,dated,searchq2,searchq3)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}

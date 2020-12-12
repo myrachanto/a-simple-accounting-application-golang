@@ -110,6 +110,7 @@ func StoreAPI(){
 	JWTgroup.POST("products", controllers.ProductController.Create)
 	// e.GET("productsearch", controllers.ProductController.GetProducts)
 	JWTgroup.GET("products", controllers.ProductController.GetAll)
+	JWTgroup.GET("product/report", controllers.ProductController.ViewReport)
 	// JWTgroup.GET("searchproducts", controllers.ProductController.SearchProduct)
 	e.GET("products/:id", controllers.ProductController.GetOne)
 	JWTgroup.GET("products/:id", controllers.ProductController.GetOne)
@@ -183,6 +184,7 @@ func StoreAPI(){
 	///////////payments/////////////////////////////////////////////////////
 	JWTgroup.POST("payments", controllers.PaymentController.Create)
 	JWTgroup.GET("payments/view", controllers.PaymentController.View)
+	JWTgroup.GET("payments/viewexpence", controllers.PaymentController.ViewExpence)
 	JWTgroup.GET("payments", controllers.PaymentController.GetAll)
 	JWTgroup.GET("payments/report", controllers.PaymentController.ViewReport)
 	JWTgroup.POST("payments/transaction", controllers.PaymentController.Updatepayments)
@@ -284,6 +286,7 @@ func StoreAPI(){
 	////////////////////reports////////////////////////////////////
 	JWTgroup.GET("sales/dashboard", controllers.SalesController.View)
 	JWTgroup.GET("purchases/dashboard", controllers.SalesController.Purchases)
+	// JWTgroup.GET("customer/statement", controllers.SalesController.Customer)
 	// JWTgroup.GET("email/create", controllers.DashboardController.Email)
 
 	// Start server

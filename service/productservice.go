@@ -34,6 +34,13 @@ func (service productservice) View() ([]model.Category, *httperors.HttpError) {
 	}
 	return options, nil
 }
+func (service productservice) ViewReport(dated,searchq2,searchq3 string) (*model.ProductReport, *httperors.HttpError) {
+	options, err1 := r.Productrepo.ViewReport(dated,searchq2,searchq3)
+	if err1 != nil {
+		return nil, err1
+	}
+	return options, nil
+}
 func (service productservice) ProductSearch(search string) ([]model.Product, *httperors.HttpError) {
 	options, err1 := r.Productrepo.SearchProducts(search)
 	if err1 != nil {

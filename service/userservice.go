@@ -51,8 +51,8 @@ func (service userService) Logout(token string) (*httperors.HttpError) {
 	}
 	return nil
 }
-func (service userService) GetOne(id int) (*model.User, *httperors.HttpError) {
-	user, err1 := r.Userrepo.GetOne(id)
+func (service userService) GetOne(id int,dated,searchq2,searchq3 string) (*model.User, *httperors.HttpError) {
+	user, err1 := r.Userrepo.GetOne(id,dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}

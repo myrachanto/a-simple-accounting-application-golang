@@ -88,7 +88,10 @@ func (controller receiptController) AddReceiptTrans(c echo.Context) error {
 }
 
 func (controller receiptController) ViewReport(c echo.Context) error {
-	options, problem := service.Receiptservice.ViewReport()
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	options, problem := service.Receiptservice.ViewReport(dated,searchq2,searchq3)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}
@@ -120,7 +123,10 @@ func (controller receiptController) View(c echo.Context) error {
 }
 func (controller receiptController) GetAll(c echo.Context) error {
 	
-	receipts, err3 := service.Receiptservice.GetAll()
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	receipts, err3 := service.Receiptservice.GetAll(dated,searchq2,searchq3)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}

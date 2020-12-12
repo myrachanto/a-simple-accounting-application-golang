@@ -20,6 +20,8 @@ type Cart struct {
 	Taxpercent float64 `json:"taxpercent"`
 	Usercode string `json:"usercode"`
 	Total float64 
+	CostPrice float64 `json:"costprice"`
+	Cost float64 `json:"cost"`
 	Cartstatus bool 
 	Picture string 
 	gorm.Model

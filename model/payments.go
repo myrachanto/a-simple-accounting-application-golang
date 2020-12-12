@@ -3,12 +3,11 @@ package model
 import (
 	"gorm.io/gorm"
 	"time"
-	"github.com/myrachanto/accounting/httperors"
 )
 //Payment ..
 type Payment struct {
-	SupplierName string `json:"suppliername"`
-	Suppliercode string `json:"suppliercode"`
+	ItemName string `json:"itemname"`
+	Itemcode string `json:"itemcode"`
 	Usercode string `json:"usercode"`
 	Description string `json:"description"` 
 	Code string `json:"code"`
@@ -40,6 +39,12 @@ type PaymentView struct {
 	Suppliers []Supplier `json:"suppliers"`
 	Paymentform []Paymentform `json:"paymentforms"`
 }
+//PaymentExpence ...
+type PaymentExpence struct {
+	Code string `json:"code"`
+	Expences []Expencetrasan `json:"expences"`
+	Paymentform []Paymentform `json:"paymentforms"`
+}
 //PaymentOptions payments view analysis
 type PaymentOptions struct {
 	AllPayments []Payment `json:"allpayments"`
@@ -51,14 +56,4 @@ type PaymentOptions struct {
 type PaymentAlloc struct {
 	Payment *Payment `json:"payment"`
 	SInvoice []SInvoice `json:"sinvoices"` //unpaid invoices
-}
-//Validate ..
-func (payments Payment) Validate() *httperors.HttpError{ 
-	if payments.SupplierName == "" && len(payments.SupplierName) > 3 {
-		return httperors.NewNotFoundError("Invalid supplier Name")
-	}
-	if payments.Description == "" && len(payments.Description) > 3 {
-		return httperors.NewNotFoundError("Invalid description")
-	}
-	return nil
 }

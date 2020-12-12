@@ -38,6 +38,13 @@ type Info struct {
 	 Sold []Transaction `json:"sold"`
 	 Bought []STransaction `json:"bought"`
  }
+ //ProductReport ..
+ type ProductReport struct {
+	Products []Product `json:"products"`
+	Product SalesModule `json:"product"`
+	Sold SalesModule `json:"sold"`
+	Bought SalesModule `json:"bought"`
+}
 //Options stuff required to create a product...
 type Options struct {
 	Price []Price `gorm:"foreignKey:prices; not null"`

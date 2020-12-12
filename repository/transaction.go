@@ -40,14 +40,55 @@ func (transactionRepo transactionrepo) GetOne(id int) (*model.Transaction, *http
 }
 func (transactionRepo transactionrepo) All() (t []model.Transaction, r *httperors.HttpError) {
 
-	transaction := model.Transaction{}
+	ts := model.Transaction{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
-	GormDB.Model(&transaction).Find(&t)
+	GormDB.Model(&ts).Find(&t)
 	IndexRepo.DbClose(GormDB)
 	return t, nil
+
+}
+func (transactionRepo transactionrepo) Allsearch(dated,searchq2,searchq3 string) (results []model.Transaction, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("updated_at BETWEEN ? AND ?", start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
 
 }
 func (transactionRepo transactionrepo) ProductsSold(code,dated,searchq2,searchq3 string) (results []model.Transaction, r *httperors.HttpError) {
@@ -91,7 +132,6 @@ func (transactionRepo transactionrepo) ProductsSold(code,dated,searchq2,searchq3
 	return results, nil
 
 }
-
 func (transactionRepo transactionrepo) Update(id int, transaction *model.Transaction) (*model.Transaction, *httperors.HttpError) {
 	ok := transactionRepo.transactionUserExistByid(id)
 	if !ok {

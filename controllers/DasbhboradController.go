@@ -13,7 +13,10 @@ type dashboardController struct{ }
 /////////controllers/////////////////
 func (controller dashboardController) View(c echo.Context) error {
 		
-	createddashboard, err1 := service.Dashboardservice.View()
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	createddashboard, err1 := service.Dashboardservice.View(dated,searchq2,searchq3)
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)
 	}

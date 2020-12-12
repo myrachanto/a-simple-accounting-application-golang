@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"strconv"
+	"time"
 	"gorm.io/gorm"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
@@ -215,20 +216,24 @@ func (receiptRepo receiptrepo) UpdateReceipts(code,status string) (string, *http
 	IndexRepo.DbClose(GormDB)
 	return "Receipt updated succesifully", nil
 }
-func (receiptRepo receiptrepo) ViewReport() (*model.ReceiptReport, *httperors.HttpError) {
-	GormDB, err1 := IndexRepo.Getconnected()
+func (receiptRepo receiptrepo) ViewReport(dated,searchq2,searchq3 string) (*model.ReceiptReport, *httperors.HttpError) {
+	all, err1 := Receiptrepo.AllSearch(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}
-	receipts := model.Receipt{}
-	all := []model.Receipt{}
-	cleared := []model.Receipt{}
-	pending := []model.Receipt{}
-	canceled := []model.Receipt{}
-	GormDB.Model(&receipts).Find(&all)
-	GormDB.Model(&receipts).Where("status = ?", "cancel").Find(&canceled)
-	GormDB.Model(&receipts).Where("status = ?", "pending").Find(&pending)
-	GormDB.Model(&receipts).Where("status = ?", "cleared").Find(&cleared)
+	cleared, err2 := Receiptrepo.AllCleared(dated,searchq2,searchq3)
+	if err2 != nil {
+		return nil, err2
+	}
+	
+	pending, err3 := Receiptrepo.AllPending(dated,searchq2,searchq3)
+	if err3 != nil {
+		return nil, err3
+	}
+	canceled, err4 := Receiptrepo.AllCanceled(dated,searchq2,searchq3)
+	if err4 != nil {
+		return nil, err4
+	}
 	var clear float64 = 0
 	for _,cl := range cleared {
 		clear += cl.Amount
@@ -256,7 +261,6 @@ func (receiptRepo receiptrepo) ViewReport() (*model.ReceiptReport, *httperors.Ht
 	z.CanceledRecipts.Total = can
 	z.CanceledRecipts.Description = "Total Amount Receipts Cancelled"
 	
-	IndexRepo.DbClose(GormDB)
 	return &z, nil
 }
 
@@ -319,26 +323,25 @@ func (receiptRepo receiptrepo) View() (*model.ReceiptView, *httperors.HttpError)
 	r.Paymentform = paymentforms
 	return r, nil
 } 
-func (receiptRepo receiptrepo) GetAll() (*model.ReceiptOptions, *httperors.HttpError) {
+func (receiptRepo receiptrepo) GetAll(dated,searchq2,searchq3 string) (*model.ReceiptOptions, *httperors.HttpError) {
 	
-	receipts := model.Receipt{}
-	all := []model.Receipt{}
-	cleared := []model.Receipt{}
-	pending := []model.Receipt{}
-	canceled := []model.Receipt{}
-	GormDB, err1 := IndexRepo.Getconnected()
+	all, err1 := Receiptrepo.AllSearch(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}
-	GormDB.Model(&receipts).Find(&all)
-	GormDB.Model(&receipts).Where("status = ?", "cancel").Find(&canceled)
-	GormDB.Model(&receipts).Where("status = ?", "pending").Find(&pending)
-	GormDB.Model(&receipts).Where("status = ?", "cleared").Find(&cleared)
-	if err1 != nil {
-			return nil, err1
-		}
-		
-	IndexRepo.DbClose(GormDB)
+	cleared, err2 := Receiptrepo.AllCleared(dated,searchq2,searchq3)
+	if err2 != nil {
+		return nil, err2
+	}
+	
+	pending, err3 := Receiptrepo.AllPending(dated,searchq2,searchq3)
+	if err3 != nil {
+		return nil, err3
+	}
+	canceled, err4 := Receiptrepo.AllCanceled(dated,searchq2,searchq3)
+	if err4 != nil {
+		return nil, err4
+	}
 	return &model.ReceiptOptions{
 		AllRecipts: all,
 		ClearedRecipts: cleared,
@@ -346,7 +349,169 @@ func (receiptRepo receiptrepo) GetAll() (*model.ReceiptOptions, *httperors.HttpE
 		CanceledRecipts: canceled,
 	}, nil
 }
+func (receiptRepo receiptrepo) AllSearch(dated,searchq2,searchq3 string) (results []model.Receipt, r *httperors.HttpError) {
 
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	if dated != "custom"{ 
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("updated_at BETWEEN ? AND ?",start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
+func (receiptRepo receiptrepo) AllCleared(dated,searchq2,searchq3 string) (results []model.Receipt, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cleared").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cleared").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cleared").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cleared").Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND updated_at BETWEEN ? AND ?","cleared", start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
+func (receiptRepo receiptrepo) AllPending(dated,searchq2,searchq3 string) (results []model.Receipt, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ? AND status = ?", d,"pending").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ? AND status = ?", d,"pending").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ? AND status = ?", d,"pending").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ? AND status = ?", d,"pending").Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND updated_at BETWEEN ? AND ?","pending", start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
+func (receiptRepo receiptrepo) AllCanceled(dated,searchq2,searchq3 string) (results []model.Receipt, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cancel").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cancel").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cancel").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cancel").Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND updated_at BETWEEN ? AND ?","cancel", start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
 func (receiptRepo receiptrepo) Update(id int, receipt *model.Receipt) (*model.Receipt, *httperors.HttpError) {
 	ok := receiptRepo.receiptUserExistByid(id)
 	if !ok {

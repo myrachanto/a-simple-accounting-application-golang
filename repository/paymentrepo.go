@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"strconv"
+	"time"
 	"gorm.io/gorm"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
@@ -20,29 +21,61 @@ func (paymentRepo paymentrepo) Create(payment *model.Payment) (*model.Payment, *
 	if err1 != nil {
 		return nil, err1
 	} 
-	sup := Supplierrepo.Getsupplier(payment.SupplierName)
-	payment.Suppliercode = sup.Suppliercode
-	payment.Allocated = "notallocated"
-	paymentform := model.Paymentform{}
-	p := model.Paymentform{}
-	if (payment.Status == "cleared"){
-		////////////begin transaction/////////////////////
-	GormDB.Transaction(func(tx *gorm.DB) error {
+	ok := Supplierrepo.SupplierExistByname(payment.ItemName)
+	itemcode := ""
+	if ok {
+		sup := Supplierrepo.Getsupplier(payment.ItemName)
+		itemcode = sup.Suppliercode
+		payment.Itemcode = itemcode
+		payment.Allocated = "notallocated"
+		paymentform := model.Paymentform{}
+		p := model.Paymentform{}
+		if (payment.Status == "cleared"){
+			////////////begin transaction/////////////////////
+		GormDB.Transaction(func(tx *gorm.DB) error {
 
-		fmt.Println("level 1")
-		tx.Create(&payment)
-		tx.Transaction(func(tx2 *gorm.DB) error {
-			fmt.Println("level 2")
-			tx2.Model(&paymentform).Where("name = ?", payment.Paymentform).First(&p)
-			updatedamount := p.Amount - payment.Amount 
-			tx2.Model(&paymentform).Where("name = ?", payment.Paymentform).Update("amount", updatedamount)
-			return nil
-		})
+			fmt.Println("level 1")
+			tx.Create(&payment)
+			tx.Transaction(func(tx2 *gorm.DB) error {
+				fmt.Println("level 2")
+				tx2.Model(&paymentform).Where("name = ?", payment.Paymentform).First(&p)
+				updatedamount := p.Amount - payment.Amount 
+				tx2.Model(&paymentform).Where("name = ?", payment.Paymentform).Update("amount", updatedamount)
+				return nil
+			})
 
 		return nil
 	})
 	}
 	GormDB.Create(&payment)
+	}
+	ok = Expencetrasanrepo.ExpenceExistByCode(payment.ItemName)
+	if ok {
+		sup := Expencetrasanrepo.ExpenceExistByNameGet(payment.ItemName)
+		itemcode = sup.Code
+		payment.Itemcode = itemcode
+		payment.Allocated = "notallocated"
+		paymentform := model.Paymentform{}
+		p := model.Paymentform{}
+		if (payment.Status == "cleared"){
+			////////////begin transaction/////////////////////
+		GormDB.Transaction(func(tx *gorm.DB) error {
+	
+			fmt.Println("level 1")
+			tx.Create(&payment)
+			tx.Transaction(func(tx2 *gorm.DB) error {
+				fmt.Println("level 2")
+				tx2.Model(&paymentform).Where("name = ?", payment.Paymentform).First(&p)
+				updatedamount := p.Amount - payment.Amount 
+				tx2.Model(&paymentform).Where("name = ?", payment.Paymentform).Update("amount", updatedamount)
+				return nil
+			})
+	
+			return nil
+		})
+		}
+		GormDB.Create(&payment)
+	}
 	IndexRepo.DbClose(GormDB)
 	return payment, nil
 }
@@ -217,7 +250,7 @@ func (paymentRepo paymentrepo) ViewInvoices(code string) (*model.PaymentAlloc, *
 	if rec == nil {
 		return nil, httperors.NewNotFoundError("That Payment does not exist")
 	}
-	invoices, err := SInvoicerepo.InvoiceByCustomercodenotpaid(rec.Suppliercode)
+	invoices, err := SInvoicerepo.InvoiceByCustomercodenotpaid(rec.Itemcode)
 	if err != nil {
 		return nil,err
 	}
@@ -276,26 +309,45 @@ func (paymentRepo paymentrepo) View() (*model.PaymentView, *httperors.HttpError)
 	r.Paymentform = paymentforms
 	return r, nil
 } 
-func (paymentRepo paymentrepo) GetAll() (*model.PaymentOptions, *httperors.HttpError) {
+func (paymentRepo paymentrepo) ViewExpence() (*model.PaymentExpence, *httperors.HttpError) {
+	r := &model.PaymentExpence{}
+
+	expences,err1 := Expencetrasanrepo.All()
+	if err1 != nil {
+		return nil, httperors.NewNotFoundError("You got an error fetching customers")
+	}
+	paymentforms,err7 := Paymentformrepo.All()
+	if err7 != nil {
+		return nil, httperors.NewNotFoundError("You got an error fetching customers")
+	}
+	code,err4 := Paymentrepo.GeneCode()
+	if err4 != nil {
+		return nil, httperors.NewNotFoundError("You got an error fetching customers")
+	}
+	r.Code = code
+	r.Expences = expences
+	r.Paymentform = paymentforms
+	return r, nil
+} 
+func (paymentRepo paymentrepo) GetAll(dated,searchq2,searchq3 string) (*model.PaymentOptions, *httperors.HttpError) {
 	
-	payments := model.Payment{}
-	all := []model.Payment{}
-	cleared := []model.Payment{}
-	pending := []model.Payment{}
-	canceled := []model.Payment{}
-	GormDB, err1 := IndexRepo.Getconnected()
+	all, err1 := Paymentrepo.AllSearch(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}
-	GormDB.Model(&payments).Find(&all)
-	GormDB.Model(&payments).Where("status = ?", "cancel").Find(&canceled)
-	GormDB.Model(&payments).Where("status = ?", "pending").Find(&pending)
-	GormDB.Model(&payments).Where("status = ?", "cleared").Find(&cleared)
-	if err1 != nil {
-			return nil, err1
-		}
-		
-	IndexRepo.DbClose(GormDB)
+	cleared, err2 := Paymentrepo.AllCleared(dated,searchq2,searchq3)
+	if err2 != nil {
+		return nil, err2
+	}
+	
+	pending, err3 := Paymentrepo.AllPending(dated,searchq2,searchq3)
+	if err3 != nil {
+		return nil, err3
+	}
+	canceled, err4 := Paymentrepo.AllCanceled(dated,searchq2,searchq3)
+	if err4 != nil {
+		return nil, err4
+	}
 	return &model.PaymentOptions{
 		AllPayments: all,
 		ClearedPayments: cleared,
@@ -303,20 +355,187 @@ func (paymentRepo paymentrepo) GetAll() (*model.PaymentOptions, *httperors.HttpE
 		CanceledPayments: canceled,
 	}, nil
 }
-func (paymentRepo paymentrepo) ViewReport() (*model.PaymentReport, *httperors.HttpError) {
+func (paymentRepo paymentrepo) AllSearch(dated,searchq2,searchq3 string) (results []model.Payment, r *httperors.HttpError) {
+
+	now := time.Now()
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
-	payment := model.Payment{}
-	all := []model.Payment{}
-	cleared := []model.Payment{}
-	pending := []model.Payment{}
-	canceled := []model.Payment{}
-	GormDB.Model(&payment).Find(&all)
-	GormDB.Model(&payment).Where("status = ?", "cancel").Find(&canceled)
-	GormDB.Model(&payment).Where("status = ?", "pending").Find(&pending)
-	GormDB.Model(&payment).Where("status = ?", "cleared").Find(&cleared)
+	if dated != "custom"{ 
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("updated_at BETWEEN ? AND ?",start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
+func (paymentRepo paymentrepo) AllCleared(dated,searchq2,searchq3 string) (results []model.Payment, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cleared").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cleared").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cleared").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cleared").Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND updated_at BETWEEN ? AND ?","cleared", start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
+func (paymentRepo paymentrepo) AllPending(dated,searchq2,searchq3 string) (results []model.Payment, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ? AND status = ?", d,"pending").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ? AND status = ?", d,"pending").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ? AND status = ?", d,"pending").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ? AND status = ?", d,"pending").Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND updated_at BETWEEN ? AND ?","pending", start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
+func (paymentRepo paymentrepo) AllCanceled(dated,searchq2,searchq3 string) (results []model.Payment, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cancel").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cancel").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cancel").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ? AND status = ?", d,"cancel").Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND updated_at BETWEEN ? AND ?","cancel", start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
+func (paymentRepo paymentrepo) ViewReport(dated,searchq2,searchq3 string) (*model.PaymentReport, *httperors.HttpError) {
+	all, err1 := Paymentrepo.AllSearch(dated,searchq2,searchq3)
+	if err1 != nil {
+		return nil, err1
+	}
+	cleared, err2 := Paymentrepo.AllCleared(dated,searchq2,searchq3)
+	if err2 != nil {
+		return nil, err2
+	}
+	
+	pending, err3 := Paymentrepo.AllPending(dated,searchq2,searchq3)
+	if err3 != nil {
+		return nil, err3
+	}
+	canceled, err4 := Paymentrepo.AllCanceled(dated,searchq2,searchq3)
+	if err4 != nil {
+		return nil, err4
+	}
 	var clear float64 = 0
 	for _,cl := range cleared {
 		clear += cl.Amount
@@ -344,7 +563,6 @@ func (paymentRepo paymentrepo) ViewReport() (*model.PaymentReport, *httperors.Ht
 	z.CanceledPayments.Total = can
 	z.CanceledPayments.Description = "Total Amount Payments Cancelled"
 	
-	IndexRepo.DbClose(GormDB)
 	return &z, nil
 }
 func (paymentRepo paymentrepo) All() (t []model.Payment, r *httperors.HttpError) {

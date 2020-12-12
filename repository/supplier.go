@@ -139,7 +139,7 @@ func (supplierRepo supplierrepo) GetOne(id int,dated,searchq2,searchq3 string) (
 	supplier := Supplierrepo.Getsupplierbyid(id)
 	// invoices, e := SInvoicerepo.SuppliersInvoice(supplier.Name)
 	invoices, e := SInvoicerepo.SuppliersInvoicebycode(supplier.Suppliercode,dated,searchq2,searchq3)
-	if e != nil {
+	if e != nil { 
 		return nil, e
 	}
 	// credits, er := SInvoicerepo.SupplierCredits(supplier.Name)
@@ -209,16 +209,45 @@ func (supplierRepo supplierrepo) All() (t []model.Supplier, r *httperors.HttpErr
 	return t, nil
 
 }
-func (supplierRepo supplierrepo) AllDebts() (t []model.CreditTransaction, r *httperors.HttpError) {
+func (supplierRepo supplierrepo) AllDebts(dated,searchq2,searchq3 string) (results []model.CreditTransaction, r *httperors.HttpError) {
 
-	debts := model.CreditTransaction{}
+	now := time.Now()
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
-	GormDB.Model(&debts).Find(&t)
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ? AND status = ?", d,"notpaid").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ? AND status = ?", d,"notpaid").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ? AND status = ?", d,"notpaid").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ? AND status = ?", d,"notpaid").Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND updated_at BETWEEN ? AND ?","notpaid", start, end).Find(&results)
+	}
 	IndexRepo.DbClose(GormDB)
-	return t, nil
+	return results, nil
 
 }
 func (supplierRepo supplierrepo)SupplierExistbycode(code string) bool {
@@ -349,12 +378,52 @@ func (supplierRepo supplierrepo)Getsupplierbyid(id int) *model.Supplier {
 	return &supplier
 	
 }
-func (supplierRepo supplierrepo) ViewReport() (*model.SupplierView, *httperors.HttpError) {
+func (supplierRepo supplierrepo) AllSearch(dated,searchq2,searchq3 string) (results []model.Supplier, r *httperors.HttpError) {
+
+	now := time.Now()
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
-	suppliers, er := Supplierrepo.All()
+	if dated != "custom"{ 
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("updated_at BETWEEN ? AND ?",start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
+func (supplierRepo supplierrepo) ViewReport(dated,searchq2,searchq3 string) (*model.SupplierView, *httperors.HttpError) {
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	suppliers, er := Supplierrepo.AllSearch(dated,searchq2,searchq3)
 	if er != nil {
 		return nil, er
 	}

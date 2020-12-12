@@ -47,8 +47,8 @@ func (service expencetrasanService) ViewExp() (*model.ExpencetransView, *httpero
 	}
 	return options, nil
 }
-func (service expencetrasanService) ViewReport() (*model.ExpencesView, *httperors.HttpError) {
-	options, err1 := r.Expencetrasanrepo.ViewReport()
+func (service expencetrasanService) ViewReport(dated,searchq2,searchq3 string) (*model.ExpencesView, *httperors.HttpError) {
+	options, err1 := r.Expencetrasanrepo.ViewReport(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}

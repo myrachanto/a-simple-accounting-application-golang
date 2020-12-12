@@ -17,7 +17,7 @@ type dashboardrepo struct{}
 //////////////
 ////////////TODO user id///////////
 /////////////////////////////////////////
-func (dashboardRepo dashboardrepo) View()(*model.Dashboard, *httperors.HttpError) {
+func (dashboardRepo dashboardrepo) View(dated,searchq2,searchq3 string)(*model.Dashboard, *httperors.HttpError) {
 	error1 := godotenv.Load()
 	if error1 != nil {
 		log.Fatal("Error loading .env file in routes")
@@ -47,33 +47,33 @@ func (dashboardRepo dashboardrepo) View()(*model.Dashboard, *httperors.HttpError
 	Suppliersicon := os.Getenv("Suppliersicon")
 	Paymentsicon := os.Getenv("Paymentsicon")
 	dashboard := model.Dashboard{}
-	customerss,err1 := Customerrepo.All()
+	customerss,err1 := Customerrepo.AllSearch(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}
-	supplierss,err2 := Supplierrepo.All() 
+	supplierss,err2 := Supplierrepo.AllSearch(dated,searchq2,searchq3) 
 	if err2 != nil {
 		return nil, err2
 	}
-	saless,err3 := Transactionrepo.All()
+	saless,err3 := Transactionrepo.Allsearch(dated,searchq2,searchq3)
 	if err3 != nil {
 		return nil, err3
 	}
-	expencess,err4 := Expencetrasanrepo.All()
+	expencess,err4 := Expencetrasanrepo.AllSearch(dated,searchq2,searchq3)
 	if err4 != nil {
 		return nil, err4
 	}
-	purchasess,err5 := STransactionrepo.All()
+	purchasess,err5 := STransactionrepo.Allsearch(dated,searchq2,searchq3)
 	if err5 != nil {
 		return nil, err5
 	}
 
-	receiptss,err6 := Receiptrepo.All()
+	receiptss,err6 := Receiptrepo.AllSearch(dated,searchq2,searchq3)
 	if err6 != nil {
 		return nil, err6
 	}
 
-	paymentss,err6 := Paymentrepo.All()
+	paymentss,err6 := Paymentrepo.AllSearch(dated,searchq2,searchq3)
 	if err6 != nil {
 		return nil, err6
 	}

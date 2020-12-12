@@ -11,7 +11,7 @@ type Transaction struct {
 	InvoiceID uint  `json:"invoiceid"`
 	Credit bool  `json:"credit note"`
 	Code string `gorm:"not null" json:"code"`
-	Title string `gorm:"not null" json:"title"`
+	Title string `gorm:"not null" json:"title"` 
 	Quantity float64 `gorm:"not null" json:"quantity"`
 	Price float64  `gorm:"not null" json:"price"`
 	Tax float64  `gorm:"not null" json:"tax"`
@@ -23,6 +23,8 @@ type Transaction struct {
 	AmountPaid float64  `gorm:"not null" json:"amountpaid"`
 	Balance float64 `gorm:"not null" json:"balance"`
 	Status string  `gorm:"not null" json:"status"`
+	CostPrice float64 `json:"costprice"`
+	Cost float64 `json:"cost"`
 	Usercode string `json:"usercode"`
 	Customercode string `json:"customercode"`
 	gorm.Model
@@ -34,5 +36,6 @@ type DebtTransaction struct {
 	Customername string `gorm:"not null" json:"customername"`
 	Customers []*Customer `gorm:"many2many:debtTransaction_customers;"`
 	Amount float64 `gorm:"not null" json:"amount"`
+	Status string `json:"paid"`
 	gorm.Model
 }

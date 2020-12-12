@@ -12,6 +12,9 @@ type Message struct {
 	Description string  `gorm:"not null" json:"description"`
 	Read bool  `gorm:"not null" json:"read"`
 	Usercode string `json:"usercode"`
+	To string `json:"to"`
+	From string `json:"from"`
+	Status string `json:"status"`
 	gorm.Model
 }
 //Validate ..

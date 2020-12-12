@@ -39,8 +39,8 @@ func (service receiptservice) View() (*model.ReceiptView, *httperors.HttpError) 
 }
 
 
-func (service receiptservice) ViewReport() (*model.ReceiptReport, *httperors.HttpError) {
-	options, err1 := r.Receiptrepo.ViewReport()
+func (service receiptservice) ViewReport(dated,searchq2,searchq3 string) (*model.ReceiptReport, *httperors.HttpError) {
+	options, err1 := r.Receiptrepo.ViewReport(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -73,8 +73,8 @@ func (service receiptservice) GetOne(id int) (*model.Receipt, *httperors.HttpErr
 	return receipt, nil
 }
 
-func (service receiptservice) GetAll() (*model.ReceiptOptions, *httperors.HttpError) {
-	receipts, err := r.Receiptrepo.GetAll()
+func (service receiptservice) GetAll(dated,searchq2,searchq3 string) (*model.ReceiptOptions, *httperors.HttpError) {
+	receipts, err := r.Receiptrepo.GetAll(dated,searchq2,searchq3)
 	if err != nil {
 		return nil, err
 	}

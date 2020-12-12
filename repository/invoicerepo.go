@@ -86,7 +86,7 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (string, *httperor
 				trans.Credit = false
 				trans.Status = "invoice"
 				fmt.Println("level 2")
-				tx2.Create(&trans)
+				tx2.Create(&trans) 
 				return nil
 			})
 		}
@@ -103,6 +103,7 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (string, *httperor
 			tx.Transaction(func(tx4 *gorm.DB) error {
 				fmt.Println("level 4")
 				tx4.Model(&product).Where("name = ?", product.Name).Update("quantity",remaining)
+				tx4.Model(&product).Where("name = ?", product.Name).Update("bPrice",c.Cost)
 				return nil
 			})
 		}
@@ -220,6 +221,46 @@ func (invoiceRepo invoicerepo) All() (t []model.Invoice, r *httperors.HttpError)
 	return t, nil
 
 }
+func (invoiceRepo invoicerepo) AllSearch(dated,searchq2,searchq3 string) (results []model.Invoice, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	if dated != "custom"{ 
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("updated_at BETWEEN ? AND ?",start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
 func (invoiceRepo invoicerepo) InvoiceByCustomer(name string) (t []model.Invoice, r *httperors.HttpError) {
 
 	invoice := model.Invoice{}
@@ -257,16 +298,44 @@ func (invoiceRepo invoicerepo) InvoiceByCustomercodenotpaid(code string) (t []mo
 	return t, nil
 
 }
-func (invoiceRepo invoicerepo) PaidInvoices() (t []model.Invoice, r *httperors.HttpError) {
-
-	invoice := model.Invoice{}
+func (invoiceRepo invoicerepo) PaidInvoices(dated,searchq2,searchq3 string) (results []model.Invoice, r *httperors.HttpError) {
+	now := time.Now()
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
-	GormDB.Model(&invoice).Where("status = ?", "paid").Find(&t)
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ? AND status = ?", d,"paid").Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ? AND status = ?", d,"paid").Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ? AND status = ?", d,"paid").Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ? AND status = ?", d,"paid").Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("status = ? AND updated_at BETWEEN ? AND ?","paid", start, end).Find(&results)
+	}
 	IndexRepo.DbClose(GormDB)
-	return t, nil
+	return results, nil
 
 }
 func (invoiceRepo invoicerepo) CustomerCredits(name string) (t []model.Invoice, r *httperors.HttpError) {

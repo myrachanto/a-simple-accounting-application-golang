@@ -16,22 +16,31 @@ type salesservice struct {
 	
 }
 
-func (service salesservice) View() (*model.Sales, *httperors.HttpError) {
-	sales, err1 := r.Salesrepo.View()
+func (service salesservice) View(dated,searchq2,searchq3 string) (*model.Sales, *httperors.HttpError) {
+	sales, err1 := r.Salesrepo.View(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}
 	 return sales, nil
 
 }
-func (service salesservice) Purchases() (*model.Purchases, *httperors.HttpError) {
-	sales, err1 := r.Salesrepo.Purchases()
+func (service salesservice) Purchases(dated,searchq2,searchq3 string) (*model.Purchases, *httperors.HttpError) {
+	sales, err1 := r.Salesrepo.Purchases(dated,searchq2,searchq3)
 	if err1 != nil {
 		return nil, err1
 	}
 	 return sales, nil
 
 }
+
+// func (service salesservice) Customer(dated,searchq2,searchq3 string) (*model.Purchases, *httperors.HttpError) {
+// 	sales, err1 := r.Salesrepo.Customer(dated,searchq2,searchq3)
+// 	if err1 != nil {
+// 		return nil, err1
+// 	}
+// 	 return sales, nil
+
+// }
 // func (service salesservice) Email() (*model.Email, *httperors.HttpError) {
 // 	sales, err1 := r.salesrepo.Email()
 // 	if err1 != nil {

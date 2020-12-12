@@ -85,7 +85,10 @@ func (controller expencetrasanController) UpdateTrans(c echo.Context) error {
 	return c.JSON(http.StatusOK, updatedcart)
 }
 func (controller expencetrasanController) ViewReport(c echo.Context) error {
-	options, problem := service.ExpencetrasanService.ViewReport()
+		dated := c.QueryParam("dated")
+		searchq2 := c.QueryParam("searchq2")
+		searchq3 := c.QueryParam("searchq3")
+	options, problem := service.ExpencetrasanService.ViewReport(dated,searchq2,searchq3)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"strconv"
+	"time"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 )
@@ -73,7 +74,86 @@ func (productRepo productrepo) View() ([]model.Category, *httperors.HttpError) {
 	}
 	return mc, nil
 }
+func (productRepo productrepo) ViewReport(dated,searchq2,searchq3 string) (*model.ProductReport, *httperors.HttpError) {
 
+	products, er := Productrepo.AllSearch(dated,searchq2,searchq3)
+	if er != nil {
+		return nil, er
+	}
+
+	sold, er1 := Transactionrepo.Allsearch(dated,searchq2,searchq3)
+	if er1 != nil {
+		return nil, er1
+	}
+	var s float64 = 0
+	for _, so := range sold {
+		s += so.Total
+	}
+	bought, er1 := STransactionrepo.Allsearch(dated,searchq2,searchq3)
+	if er != nil {
+		return nil, er
+	}
+	var b float64 = 0
+	for _, bo := range bought {
+		b += bo.Total
+	}
+	z := model.ProductReport{}
+	z.Products = products
+	z.Product.Name = "All Products"
+	z.Product.Total = float64(len(products))
+	z.Product.Description = "Total Products registered"
+	//////////////////////////////////////////////////////////////
+	z.Sold.Name = "Total sales"
+	z.Sold.Total = s
+	z.Sold.Description = "Total sales  in this search period"
+	///////////////////////////////////////////////////////////////
+	z.Bought.Name = "Total Purchases"
+	z.Bought.Total = b
+	z.Bought.Description = "Total purchase in this search period"
+	
+	return &z, nil
+}
+
+func (productRepo productrepo) AllSearch(dated,searchq2,searchq3 string) (results []model.Product, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	if dated != "custom"{ 
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("updated_at BETWEEN ? AND ?",start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
 func (productRepo productrepo) All() (t []model.Product, r *httperors.HttpError) {
 
 	product := model.Product{}
