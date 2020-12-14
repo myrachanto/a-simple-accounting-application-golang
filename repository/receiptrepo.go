@@ -43,6 +43,11 @@ func (receiptRepo receiptrepo) Create(receipt *model.Receipt) (*model.Receipt, *
 		return nil
 	})
 	}
+	
+	Nortificationrepo.Create(&model.Nortification{
+		Title:"you have a pending Recipts",
+		Description: "You have a peding receipts worth" + strconv.FormatUint(uint64(receipt.Amount), 10),
+	})
 	GormDB.Create(&receipt)
 	IndexRepo.DbClose(GormDB)
 	return receipt, nil

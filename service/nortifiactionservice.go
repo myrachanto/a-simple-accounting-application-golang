@@ -26,6 +26,11 @@ func (service nortificationService) Create(nortification *model.Nortification) (
 	 return nortification, nil
 
 }
+
+func (service nortificationService) GetAllUnread() (*model.NortUnread, *httperors.HttpError) {
+	results, err := r.Nortificationrepo.GetAllUnread()
+	return results, err
+}
 func (service nortificationService) GetOne(id int) (*model.Nortification, *httperors.HttpError) {
 	nortification, err1 := r.Nortificationrepo.GetOne(id)
 	if err1 != nil {
@@ -38,8 +43,8 @@ func (service nortificationService) GetAll(search string, page,pagesize int) ([]
 	results, err := r.Nortificationrepo.GetAll(search, page,pagesize)
 	return results, err
 }
-func (service nortificationService) Update(id int, nortification *model.Nortification) (*model.Nortification, *httperors.HttpError) {
-	nortification, err1 := r.Nortificationrepo.Update(id, nortification)
+func (service nortificationService) Update(id int) (*model.Nortification, *httperors.HttpError) {
+	nortification, err1 := r.Nortificationrepo.Update(id)
 	if err1 != nil {
 		return nil, err1
 	}

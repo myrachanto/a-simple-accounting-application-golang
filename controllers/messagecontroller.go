@@ -17,18 +17,27 @@ type messageController struct{ }
 /////////controllers/////////////////
 func (controller messageController) Create(c echo.Context) error {
 	message := &model.Message{}
-	if err := c.Bind(message); err != nil {
-		httperror := httperors.NewBadRequestError("Invalid json body")
-		return c.JSON(httperror.Code, httperror)
-	}
+	
+	message.Title = c.FormValue("title")
+	message.Description = c.FormValue("description")
+	message.Tousercode = c.FormValue("tousercode")
+	message.Fromusercode = c.FormValue("fromusercode")
 	createdmessage, err1 := service.MessageService.Create(message)
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)
 	}
 	return c.JSON(http.StatusCreated, createdmessage)
 }
+func (controller messageController) GetAllUnread(c echo.Context) error {
+	 
+	results, err3 := service.MessageService.GetAllUnread()
+	if err3 != nil {
+		return c.JSON(err3.Code, err3)
+	}
+	return c.JSON(http.StatusOK, results)
+}
 func (controller messageController) GetAll(c echo.Context) error {
-	
+	 
 	search := string(c.QueryParam("q"))
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
@@ -63,17 +72,12 @@ func (controller messageController) GetOne(c echo.Context) error {
 
 func (controller messageController) Update(c echo.Context) error {
 		
-	message :=  &model.Message{}
-	if err := c.Bind(message); err != nil {
-		httperror := httperors.NewBadRequestError("Invalid json body")
-		return c.JSON(httperror.Code, httperror)
-	}	
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		httperror := httperors.NewBadRequestError("Invalid ID")
 		return c.JSON(httperror.Code, httperror)
 	}
-	updatedmessage, problem := service.MessageService.Update(id, message)
+	updatedmessage, problem := service.MessageService.Update(id)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}

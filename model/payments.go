@@ -12,6 +12,7 @@ type Payment struct {
 	Description string `json:"description"` 
 	Code string `json:"code"`
 	ChequeNo string `json:"chequeno"`
+	Mode string `json:"mode"`
 	Expirydate time.Time `json:"expirydate"`
 	SupplierID uint `json:"supplierrid"`
 	Supplier Supplier  `json:"supplier"`

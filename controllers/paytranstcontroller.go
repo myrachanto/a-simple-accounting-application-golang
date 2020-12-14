@@ -29,7 +29,16 @@ func (controller payrectrasanController) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdpayrectrasan)
 }
 
-
+func (controller payrectrasanController) Updatepayments(c echo.Context) error {
+		
+	code := c.FormValue("code")
+	status := c.FormValue("status")
+	updatedcart, problem := service.PayrectrasanService.Updatepayments(code,status)
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, updatedcart)
+}
 func (controller payrectrasanController) View(c echo.Context) error {
 	code, problem := service.PayrectrasanService.View()
 	if problem != nil {

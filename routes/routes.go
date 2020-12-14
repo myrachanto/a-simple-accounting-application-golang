@@ -58,7 +58,7 @@ func StoreAPI(){
 	e.POST("/login", controllers.UserController.Login)
 	JWTgroup.GET("logout/:token", controllers.UserController.Logout)
 	JWTgroup.GET("users", controllers.UserController.GetAll)
-	JWTgroup.GET("users/:id", controllers.UserController.GetOne)
+	JWTgroup.GET("users/:code", controllers.UserController.GetOne)
 	JWTgroup.PUT("users/role/:id", controllers.UserController.UpdateRole)
 	JWTgroup.PUT("users/:id", controllers.UserController.Update)
 	JWTgroup.DELETE("users/:id", controllers.UserController.Delete)
@@ -70,16 +70,18 @@ func StoreAPI(){
 	//e.DELETE("loggoutall/:id", controllers.UserController.DeleteALL) logout all accounts
 	///////////message/////////////////////////////	
 	JWTgroup.POST("messages", controllers.MessageController.Create)
-	JWTgroup.GET("messages", controllers.MessageController.GetAll)
+	JWTgroup.GET("messages", controllers.MessageController.GetAll) 
+	JWTgroup.GET("messages/unread", controllers.MessageController.GetAllUnread) 
 	JWTgroup.GET("messages/:id", controllers.MessageController.GetOne)
 	JWTgroup.PUT("messages/:id", controllers.MessageController.Update)
 	JWTgroup.DELETE("messages/:id", controllers.MessageController.Delete)
 	///////////nortifications/////////////////////////////	
 	JWTgroup.POST("nortifications", controllers.NortificationController.Create)
-	JWTgroup.GET("nortifications", controllers.MessageController.GetAll) 
-	JWTgroup.GET("nortifications/:id", controllers.MessageController.GetOne)
-	JWTgroup.PUT("nortifications/:id", controllers.MessageController.Update)
-	JWTgroup.DELETE("nortifications/:id", controllers.MessageController.Delete)
+	JWTgroup.GET("nortifications", controllers.NortificationController.GetAll) 
+	JWTgroup.GET("nortifications/unread", controllers.NortificationController.GetAllUnread) 
+	JWTgroup.GET("nortifications/:id", controllers.NortificationController.GetOne)
+	JWTgroup.PUT("nortifications/:id", controllers.NortificationController.Update)
+	JWTgroup.DELETE("nortifications/:id", controllers.NortificationController.Delete)
 	///////////category/////////////////////////////	
 	JWTgroup.GET("categorys/view", controllers.CategoryController.View)
 	JWTgroup.POST("categorys", controllers.CategoryController.Create)
@@ -189,11 +191,16 @@ func StoreAPI(){
 	JWTgroup.GET("payments/report", controllers.PaymentController.ViewReport)
 	JWTgroup.POST("payments/transaction", controllers.PaymentController.Updatepayments)
 	JWTgroup.GET("payments/cleared", controllers.PaymentController.ViewCleared)
+	JWTgroup.GET("payments/clearedexpences", controllers.PaymentController.ViewClearedExpence)
 	JWTgroup.GET("payments/cleared/:code", controllers.PaymentController.ViewInvoices)
 	JWTgroup.POST("payments/cleared", controllers.PaymentController.AddPaymentsTrans)
 	JWTgroup.GET("payments/:id", controllers.PaymentController.GetOne)
 	// JWTgroup.PUT("payments/:id", controllers.PaymentController.Update)
 	// JWTgroup.DELETE("payments/:id", controllers.PaymentController.Delete)
+
+	/////////////update paymentreceipt///////////////////////
+
+	JWTgroup.POST("Payrectrasan/transaction", controllers.PayrectrasanController.Updatepayments)
 	///////////receipts/////////////////////////////////////////////////////
 	JWTgroup.POST("receipts", controllers.ReceiptController.Create)
 	JWTgroup.GET("receipts/view", controllers.ReceiptController.View)

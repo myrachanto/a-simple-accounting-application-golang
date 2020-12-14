@@ -31,7 +31,7 @@ func (nortificationRepo nortificationrepo) GetOne(id int) (*model.Nortification,
 		return nil, httperors.NewNotFoundError("nortification with that id does not exists!")
 	}
 	nortification := model.Nortification{}
-	GormDB, err1 := IndexRepo.Getconnected()
+	GormDB, err1 := IndexRepo.Getconnected() 
 	if err1 != nil {
 		return nil, err1
 	}
@@ -41,7 +41,21 @@ func (nortificationRepo nortificationrepo) GetOne(id int) (*model.Nortification,
 	
 	return &nortification, nil
 }
+func (nortificationRepo nortificationrepo) GetAllUnread() (*model.NortUnread, *httperors.HttpError) {
+	results := []model.Nortification{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	} 
+	// db.Scopes(Paginate(r)).Find(&users)
+	GormDB.Where("read = ?", false).Find(&results)
 
+	IndexRepo.DbClose(GormDB)
+	return &model.NortUnread{
+		Num: len(results),
+		Nortifications: results,
+	}, nil
+}
 func (nortificationRepo nortificationrepo) GetAll(search string, page,pagesize int) ([]model.Nortification, *httperors.HttpError) {
 	results := []model.Nortification{}
 	GormDB, err1 := IndexRepo.Getconnected()
@@ -99,18 +113,18 @@ func (nortificationRepo nortificationrepo) AllSearch(dated,searchq2,searchq3 str
 
 }
 
-func (nortificationRepo nortificationrepo) Update(id int, nortification *model.Nortification) (*model.Nortification, *httperors.HttpError) {
+func (nortificationRepo nortificationrepo) Update(id int) (*model.Nortification, *httperors.HttpError) {
 	ok := nortificationRepo.ProductUserExistByid(id)
 	if !ok {
 		return nil, httperors.NewNotFoundError("nortification with that id does not exists!")
 	}
-	
+	nortification := &model.Nortification{}
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
 	
-	GormDB.Model(&nortification).Where("id = ?", id).Save(&nortification)
+	GormDB.Model(&nortification).Where("id = ?", id).Update("read",true)
 	
 	IndexRepo.DbClose(GormDB)
 

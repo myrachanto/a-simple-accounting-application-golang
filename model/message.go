@@ -11,17 +11,17 @@ type Message struct {
 	Sender []*User `gorm:"many2many:message_users;"`
 	Description string  `gorm:"not null" json:"description"`
 	Read bool  `gorm:"not null" json:"read"`
-	Usercode string `json:"usercode"`
-	To string `json:"to"`
-	From string `json:"from"`
-	Status string `json:"status"`
+	Tousercode string `json:"to"`
+	Fromusercode string `json:"from"`
 	gorm.Model
+}
+//MessageUnread ..
+type MessageUnread struct{
+	Num int `json:"num"`
+	Messages []Message `json:"messages"`
 }
 //Validate ..
 func (message Message) Validate() *httperors.HttpError{ 
-	if message.Name == "" && len(message.Name) < 3 {
-		return httperors.NewNotFoundError("Invalid Name")
-	}
 	if message.Title == "" && len(message.Title) < 3 {
 		return httperors.NewNotFoundError("Invalid Title")
 	}

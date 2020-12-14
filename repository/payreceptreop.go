@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+	"gorm.io/gorm"
 	"github.com/myrachanto/accounting/httperors"
 	"github.com/myrachanto/accounting/model"
 )
@@ -59,7 +61,43 @@ func (payrectrasanRepo payrectrasanrepo) GetOne(id int) (*model.Payrectrasan, *h
 	return &payrectrasan, nil
 }
 
+func (payrectrasanRepo payrectrasanrepo) Updatepayments(code,status string) (string, *httperors.HttpError) {
+	ok := Paymentrepo.paymentExistByCode(code)
+	if ok == false {
+		return "", httperors.NewNotFoundError("That payment does not exist!")
+	}
+	r := model.Payment{}
+	GormDB, err1 :=IndexRepo.Getconnected()
+	if err1 != nil {
+		return "", err1
+	}
+	fmt.Println(status, code)
+	paymentform := model.Paymentform{}
+	p := model.Paymentform{}
+	if (r.Status == "cleared"){
+		////////////begin transaction/////////////////////
+	GormDB.Transaction(func(tx *gorm.DB) error {
 
+		fmt.Println("level 1")
+		tx.Model(&r).Where("itemcode = ?", code).Update("status",status)
+		tx.Model(&r).Where("allocated = ?", "allocated").Update("status",status)
+
+		tx.Transaction(func(tx2 *gorm.DB) error {
+			fmt.Println("level 2")
+			tx2.Model(&paymentform).Where("name = ?", r.Paymentform).First(&p)
+			updatedamount := p.Amount - r.Amount 
+			tx2.Model(&paymentform).Where("name = ?", r.Paymentform).Update("amount", updatedamount)
+			return nil
+		})
+
+		return nil
+	})
+	}
+	GormDB.Model(&r).Where("code = ?", code).Update("status",status)
+	
+	IndexRepo.DbClose(GormDB)
+	return "payment updated succesifully", nil
+}
 func (payrectrasanRepo payrectrasanrepo) Update(id int, payrectrasan *model.Payrectrasan) (*model.Payrectrasan, *httperors.HttpError) {
 	ok := payrectrasanRepo.ProductUserExistByid(id)
 	if !ok {

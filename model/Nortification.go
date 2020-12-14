@@ -14,6 +14,10 @@ type Nortification struct {
 	Usercode string `json:"usercode"`
 	gorm.Model
 }
+type NortUnread struct{
+	Num int `json:"num"`
+	Nortifications []Nortification `json:"nortfications"`
+}
 //Validate ..
 func (nortification Nortification) Validate() *httperors.HttpError{ 
 	if nortification.Name == "" && len(nortification.Name) < 3 {

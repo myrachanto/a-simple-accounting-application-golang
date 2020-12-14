@@ -28,6 +28,7 @@ func (paymentRepo paymentrepo) Create(payment *model.Payment) (*model.Payment, *
 		itemcode = sup.Suppliercode
 		payment.Itemcode = itemcode
 		payment.Allocated = "notallocated"
+		payment.Mode = "invoice"
 		paymentform := model.Paymentform{}
 		p := model.Paymentform{}
 		if (payment.Status == "cleared"){
@@ -55,6 +56,7 @@ func (paymentRepo paymentrepo) Create(payment *model.Payment) (*model.Payment, *
 		itemcode = sup.Code
 		payment.Itemcode = itemcode
 		payment.Allocated = "notallocated"
+		payment.Mode = "other"
 		paymentform := model.Paymentform{}
 		p := model.Paymentform{}
 		if (payment.Status == "cleared"){
@@ -74,6 +76,10 @@ func (paymentRepo paymentrepo) Create(payment *model.Payment) (*model.Payment, *
 			return nil
 		})
 		}
+		Nortificationrepo.Create(&model.Nortification{
+			Title:"you have a pending Payment",
+			Description: "You have a peding payment worth" + strconv.FormatUint(uint64(payment.Amount), 10),
+		})
 		GormDB.Create(&payment)
 	}
 	IndexRepo.DbClose(GormDB)
@@ -239,7 +245,19 @@ func (paymentRepo paymentrepo) ViewCleared() ([]model.Payment, *httperors.HttpEr
 	}
 	payment := model.Payment{}
 	cleared := []model.Payment{}
-	GormDB.Model(&payment).Where("status = ? AND allocated = ?", "cleared", "notallocated").Find(&cleared)
+	GormDB.Model(&payment).Where("status = ? AND allocated = ? AND mode = ?", "cleared", "notallocated", "invoice").Find(&cleared)
+	IndexRepo.DbClose(GormDB)
+	return cleared, nil
+
+}
+func (paymentRepo paymentrepo) ViewClearedExpence() ([]model.Payment, *httperors.HttpError) {
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1  
+	}
+	payment := model.Payment{}
+	cleared := []model.Payment{}
+	GormDB.Model(&payment).Where("allocated = ? AND mode = ?", "notallocated", "other").Find(&cleared)
 	IndexRepo.DbClose(GormDB)
 	return cleared, nil
 

@@ -156,23 +156,66 @@ func (userRepo userrepo)GeneCode() (string, *httperors.HttpError) {
 	return code, nil
 	
 }
-func (userRepo userrepo) GetOne(id int,dated,searchq2,searchq3 string) (*model.User, *httperors.HttpError) { 
-	ok := userRepo.UserExistByid(id)
+func (userRepo userrepo) GetOne(code,dated,searchq2,searchq3 string) (*model.UserProfile, *httperors.HttpError) { 
+	ok := userRepo.UserExistbycode(code)
 	if !ok {
-		return nil, httperors.NewNotFoundError("User with that id does not exists!")
+		return nil, httperors.NewNotFoundError("User with that code does not exists!")
 	}
 	user := model.User{} 
 	GormDB, err1 := IndexRepo.Getconnected()
-	if err1 != nil {
+	if err1 != nil { 
 		return nil, err1
 	}
 	
-	GormDB.Model(&user).Where("id = ?", id).First(&user)
+	GormDB.Model(&user).Where("usercode = ?", code).First(&user)
 	IndexRepo.DbClose(GormDB)
-	
-	return &user, nil
+	sent, err := Messagerepo.Sent(code,dated,searchq2,searchq3)
+	if err != nil {
+		return nil,err 
+	}
+	inbox, err2 := Messagerepo.Inbox(code,dated,searchq2,searchq3)
+	if err2 != nil {
+		return nil,err2
+	}
+	users, err3 := Userrepo.All()
+	if err3 != nil {
+		return nil,err3
+	}
+	return &model.UserProfile{
+		User:user,
+		Sent:sent,
+		Inbox:inbox,
+		Users:users,
+	}, nil
 }
-
+func (userRepo userrepo)UserExistbycode(code string) bool {
+	u := model.User{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return false
+	}
+	GormDB.Where("usercode = ?", code).First(&u)
+	if u.ID == 0 {
+	   return false
+	}
+	IndexRepo.DbClose(GormDB)
+	return true
+	
+}
+func (userRepo userrepo)Userbycode(code string) *model.User {
+	u := model.User{}
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil
+	}
+	GormDB.Where("usercode = ?", code).First(&u)
+	if u.ID == 0 {
+	   return nil
+	}
+	IndexRepo.DbClose(GormDB)
+	return &u
+	
+}
 func (userRepo userrepo) GetAll(search string, page,pagesize int) ([]model.User, *httperors.HttpError) {
 	results := []model.User{}
 	GormDB, err1 := IndexRepo.Getconnected()

@@ -154,7 +154,13 @@ func (controller paymentController) ViewCleared(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, options)	
 }
-
+func (controller paymentController) ViewClearedExpence(c echo.Context) error {
+	options, problem := service.Paymentservice.ViewClearedExpence()
+	if problem != nil {
+		return c.JSON(problem.Code, problem)
+	}
+	return c.JSON(http.StatusOK, options)	
+}
 func (controller paymentController) ViewInvoices(c echo.Context) error {
 	code := c.Param("code")
 	invoices, problem := service.Paymentservice.ViewInvoices(code)

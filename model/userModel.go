@@ -58,6 +58,13 @@ type Token struct {
 	Supervisor bool `json:"supervisor"`
 	*jwt.StandardClaims
 }
+//UserProfile user profile and messages
+type UserProfile struct{
+ User User `json:"user"`
+ Inbox []Message `json:"inbox"`
+ Sent []Message `json:"sent"`
+ Users []User `json:"users"`
+}
 //ValidateEmail ..
 func (user User)ValidateEmail(email string) (matchedString bool) {
 	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&amp;'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")

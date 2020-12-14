@@ -38,6 +38,13 @@ func (service paymentservice) ViewCleared() ([]model.Payment, *httperors.HttpErr
 	}
 	return options, nil
 }
+func (service paymentservice) ViewClearedExpence() ([]model.Payment, *httperors.HttpError) {
+	options, err1 := r.Paymentrepo.ViewClearedExpence()
+	if err1 != nil {
+		return nil, err1
+	}
+	return options, nil
+}
 func (service paymentservice) AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode string ,amount float64) (string, *httperors.HttpError) {
 	options, err1 := r.Paymentrepo.AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode,amount)
 	return options, err1

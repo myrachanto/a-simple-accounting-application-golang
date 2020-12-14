@@ -27,6 +27,15 @@ func (controller nortificationController) Create(c echo.Context) error {
 	}
 	return c.JSON(http.StatusCreated, creatednortification)
 }
+
+func (controller nortificationController) GetAllUnread(c echo.Context) error {
+	 
+	results, err3 := service.NortificationService.GetAllUnread()
+	if err3 != nil {
+		return c.JSON(err3.Code, err3)
+	}
+	return c.JSON(http.StatusOK, results)
+}
 func (controller nortificationController) GetAll(c echo.Context) error {
 	
 	search := string(c.QueryParam("q"))
@@ -63,17 +72,12 @@ func (controller nortificationController) GetOne(c echo.Context) error {
 
 func (controller nortificationController) Update(c echo.Context) error {
 		
-	nortification :=  &model.Nortification{}
-	if err := c.Bind(nortification); err != nil {
-		httperror := httperors.NewBadRequestError("Invalid json body")
-		return c.JSON(httperror.Code, httperror)
-	}	
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		httperror := httperors.NewBadRequestError("Invalid ID")
 		return c.JSON(httperror.Code, httperror)
 	}
-	updatednortification, problem := service.NortificationService.Update(id, nortification)
+	updatednortification, problem := service.NortificationService.Update(id)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}
