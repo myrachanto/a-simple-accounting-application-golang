@@ -50,6 +50,7 @@ func (userRepo userrepo) Create(user *model.User) (string, *httperors.HttpError)
 	}
 	user.Usercode = code
 	// fmt.Println(user)
+	user.Admin = true
 	GormDB.Create(&user)
 	IndexRepo.DbClose(GormDB)
 	return "user created successifully", nil
@@ -181,11 +182,16 @@ func (userRepo userrepo) GetOne(code,dated,searchq2,searchq3 string) (*model.Use
 	if err3 != nil {
 		return nil,err3
 	}
+	norts, err3 := Nortificationrepo.AllSearch(dated,searchq2,searchq3)
+	if err3 != nil {
+		return nil,err3
+	}
 	return &model.UserProfile{
 		User:user,
 		Sent:sent,
 		Inbox:inbox,
 		Users:users,
+		Nortification:norts,
 	}, nil
 }
 func (userRepo userrepo)UserExistbycode(code string) bool {

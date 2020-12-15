@@ -38,8 +38,8 @@ func (service messageService) GetAllUnread() (*model.MessageUnread, *httperors.H
 	results, err := r.Messagerepo.GetAllUnread()
 	return results, err
 }
-func (service messageService) GetAll(search string, page,pagesize int) ([]model.Message, *httperors.HttpError) {
-	results, err := r.Messagerepo.GetAll(search, page,pagesize)
+func (service messageService) GetAll(dated,searchq2,searchq3 string) ([]model.Message, *httperors.HttpError) {
+	results, err := r.Messagerepo.GetAll(dated,searchq2,searchq3)
 	return results, err
 }
 func (service messageService) Update(id int) (*model.Message, *httperors.HttpError) {

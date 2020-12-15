@@ -79,11 +79,11 @@ func (cartRepo cartrepo) Create(cart *model.Cart) (string, *httperors.HttpError)
 	if cart.Quantity > product.Quantity {
 		return "", httperors.NewNotFoundError("please that more than we have in stock")
 	}
-	if cart.SPrice < product.BPrice {
+	if cart.SPrice < product.Bprice {
 		return "", httperors.NewNotFoundError("please that price wont do its less than buying price")
 	}
-	cart.CostPrice = product.BPrice
-	cart.Cost = cart.Quantity * product.BPrice
+	cart.CostPrice = product.Bprice
+	cart.Cost = cart.Quantity * product.Bprice
 	cart.Productcode = product.Productcode
 	GormDB.Create(&cart)
 	IndexRepo.DbClose(GormDB)

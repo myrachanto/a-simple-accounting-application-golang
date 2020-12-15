@@ -33,6 +33,15 @@ func (service salesservice) Purchases(dated,searchq2,searchq3 string) (*model.Pu
 
 }
 
+func (service salesservice) Pl(dated,searchq2,searchq3 string) (*model.Pl, *httperors.HttpError) {
+	sales, err1 := r.Salesrepo.PL(dated,searchq2,searchq3)
+	if err1 != nil {
+		return nil, err1
+	}
+	 return sales, nil
+
+}
+
 // func (service salesservice) Customer(dated,searchq2,searchq3 string) (*model.Purchases, *httperors.HttpError) {
 // 	sales, err1 := r.Salesrepo.Customer(dated,searchq2,searchq3)
 // 	if err1 != nil {

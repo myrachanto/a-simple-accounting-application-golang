@@ -204,7 +204,7 @@ func (controller productController) Update(c echo.Context) error {
 	// 	httperror := httperors.NewBadRequestError("Invalid selling price")
 	// 	return c.JSON(httperror.Code, httperror)
 	// }
-	product.BPrice = b
+	product.Bprice = b
 	// product.SPrice = s
 	// // Multipart form
 		// Source

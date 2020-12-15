@@ -64,6 +64,7 @@ type UserProfile struct{
  Inbox []Message `json:"inbox"`
  Sent []Message `json:"sent"`
  Users []User `json:"users"`
+ Nortification []Nortification `json:"nortifications"`
 }
 //ValidateEmail ..
 func (user User)ValidateEmail(email string) (matchedString bool) {

@@ -36,7 +36,7 @@ func (scartRepo scartrepo) Create(scart *model.Scart) (string, *httperors.HttpEr
 		return "", httperors.NewNotFoundError("please Add a number bigger than zero!")
 	}
 	tx := scart.Tax
-	dis := scart.Discount
+	dis := scart.Discount 
 	fmt.Println(tx,dis)
 
 	grossamount := scart.Quantity * scart.BPrice

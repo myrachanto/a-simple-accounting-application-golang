@@ -147,10 +147,15 @@ func (supplierRepo supplierrepo) GetOne(id int,dated,searchq2,searchq3 string) (
 	if er != nil {
 		return nil, er
 	}
+	payments, er3 := Paymentrepo.AllSearchSupplier(supplier.Suppliercode,dated,searchq2,searchq3)
+	if er3 != nil {
+		return nil, er3
+	}
 	return &model.Supplierdetails{
 		Supplier: supplier,
 		SInvoices: invoices,
 		Grns: credits,
+		Payment:payments,
 	}, nil
 }
 func (supplierRepo supplierrepo)GeneCode() (string, *httperors.HttpError) {
@@ -342,7 +347,7 @@ func (supplierRepo supplierrepo)Getsupplier(name string) *model.Supplier {
 	if err1 != nil {
 		return nil
 	}
-	GormDB.Where("name = ? ", name).First(&supplier)
+	GormDB.Where("name = ? ", name).First(&supplier) 
 	if supplier.Name == "" {
 	   return nil
 	}

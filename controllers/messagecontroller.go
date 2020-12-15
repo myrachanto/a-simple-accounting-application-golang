@@ -38,19 +38,11 @@ func (controller messageController) GetAllUnread(c echo.Context) error {
 }
 func (controller messageController) GetAll(c echo.Context) error {
 	 
-	search := string(c.QueryParam("q"))
-	page, err := strconv.Atoi(c.QueryParam("page"))
-	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid page number")
-		return c.JSON(httperror.Code, httperror)
-	}
-	pagesize, err := strconv.Atoi(c.QueryParam("pagesize"))
-	if err != nil {
-		httperror := httperors.NewBadRequestError("Invalid pagesize")
-		return c.JSON(httperror.Code, httperror)
-	}
 	
-	results, err3 := service.MessageService.GetAll(search, page,pagesize)
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	results, err3 := service.MessageService.GetAll(dated,searchq2,searchq3)
 	if err3 != nil {
 		return c.JSON(err3.Code, err3)
 	}

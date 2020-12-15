@@ -145,18 +145,42 @@ func (messageRepo messagerepo) GetAllUnread() (*model.MessageUnread, *httperors.
 		Messages: results,
 	}, nil
 }
-func (messageRepo messagerepo) GetAll(search string, page,pagesize int) ([]model.Message, *httperors.HttpError) {
-	results := []model.Message{}
+func (messageRepo messagerepo) GetAll(dated,searchq2,searchq3 string) (results []model.Message, e *httperors.HttpError) {
+	
+	now := time.Now()
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
-	} 
-	if search == ""{
-		GormDB.Find(&results)
 	}
-	// db.Scopes(Paginate(r)).Find(&users)
-	GormDB.Scopes(Paginate(page,pagesize)).Where("name LIKE ?", "%"+search+"%").Or("title LIKE ?", "%"+search+"%").Or("description LIKE ?", "%"+search+"%").Find(&results)
-
+	if dated != "custom"{ 
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Where("updated_at > ?", d).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Where("updated_at > ?",d).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3)
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Where("updated_at BETWEEN ? AND ?",start, end).Find(&results)
+	}
 	IndexRepo.DbClose(GormDB)
 	return results, nil
 }

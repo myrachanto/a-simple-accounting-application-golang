@@ -55,6 +55,7 @@ type Supplierdetails struct {
 	Supplier *Supplier `json:"supplier"`
 	SInvoices []SInvoice `json:"sinvoices"`
 	Grns []SInvoice `json:"grns"`
+	Payment []Payment `json:"payments"`
 }
 //ValidateEmail ...
 func (supplier Supplier)ValidateEmail(email string) (matchedString bool) {

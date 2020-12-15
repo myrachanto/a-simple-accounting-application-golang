@@ -19,12 +19,10 @@ var (
 type userController struct{ }
 /////////controllers/////////////////
 func (controller userController) Register(c echo.Context) error {
-	fmt.Println("endpoint called!")
 	user := &model.User{}
-	
 	user.FName = c.FormValue("fname")
-	user.UName = c.FormValue("uname")
 	user.LName = c.FormValue("lname")
+	user.UName = c.FormValue("uname")
 	user.Phone = c.FormValue("phone")
 	user.Address = c.FormValue("address")
 	user.Email = c.FormValue("email")
@@ -42,7 +40,9 @@ func (controller userController) Register(c echo.Context) error {
 			return c.JSON(httperror.Code, err)
 		}	
 		defer src.Close()
+		// filePath := "./public/imgs/users/"
 		filePath := "./public/imgs/users/" + pic.Filename
+		filePath1 := "/imgs/users/" + pic.Filename
 		// Destination
 		dst, err4 := os.Create(filePath)
 		if err4 != nil {
@@ -51,14 +51,25 @@ func (controller userController) Register(c echo.Context) error {
 		}
 		defer dst.Close()
 		// Copy
+		if _, err = io.Copy(dst, src); err != nil {
+			if err2 != nil {
+				httperror := httperors.NewBadRequestError("error filling")
+				return c.JSON(httperror.Code, httperror)
+			}
+		}
 		
-		
-	user.Picture = pic.Filename
-	createdUser, err1 := service.UserService.Create(user)
+	user.Picture = filePath1
+	s, err1 := service.UserService.Create(user)
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)
 	}
-	return c.JSON(http.StatusCreated, createdUser)
+	if _, err = io.Copy(dst, src); err != nil {
+		if err2 != nil {
+			httperror := httperors.NewBadRequestError("error filling")
+			return c.JSON(httperror.Code, httperror)
+		}
+	}
+	return c.JSON(http.StatusCreated, s)
 }
 func (controller userController) Create(c echo.Context) error {
 	user := &model.User{}
@@ -70,7 +81,7 @@ func (controller userController) Create(c echo.Context) error {
 	user.Email = c.FormValue("email")
 	user.Password = c.FormValue("password")
 
-	   pic, err2 := c.FormFile("picture")
+	pic, err2 := c.FormFile("picture")
 	//    fmt.Println(pic.Filename)
 	   if err2 != nil {
 				httperror := httperors.NewBadRequestError("Invalid picture")
@@ -82,7 +93,8 @@ func (controller userController) Create(c echo.Context) error {
 			return c.JSON(httperror.Code, err)
 		}	
 		defer src.Close()
-		filePath := "./public/imgs/users/" + pic.Filename
+		filePath := "./public/imgs/users/"
+		filePath1 := "./public/imgs/users/" + pic.Filename
 		// Destination
 		dst, err4 := os.Create(filePath)
 		if err4 != nil {
@@ -91,9 +103,14 @@ func (controller userController) Create(c echo.Context) error {
 		}
 		defer dst.Close()
 		// Copy
+		if _, err = io.Copy(dst, src); err != nil {
+			if err2 != nil {
+				httperror := httperors.NewBadRequestError("error filling")
+				return c.JSON(httperror.Code, httperror)
+			}
+		}
 		
-		
-	user.Picture = pic.Filename
+	user.Picture = filePath1
 	s, err1 := service.UserService.Create(user)
 	if err1 != nil {
 		return c.JSON(err1.Code, err1)

@@ -71,7 +71,7 @@ func (payrectrasanRepo payrectrasanrepo) Updatepayments(code,status string) (str
 	if err1 != nil {
 		return "", err1
 	}
-	fmt.Println(status, code)
+	fmt.Println(status, code) 
 	paymentform := model.Paymentform{}
 	p := model.Paymentform{}
 	if (r.Status == "cleared"){

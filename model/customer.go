@@ -56,6 +56,7 @@ type Customerdetails struct {
 	Customer Customer `json:"customer"`
 	Invoices []Invoice `json:"invoices"`
 	Credits []Invoice `json:"credits"`
+	Receipts []Receipt `json:"receipts"`
 }
 //CustomerStatement ..
 type CustomerStatement struct {

@@ -88,7 +88,7 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (string, *httperor
 				fmt.Println("level 2")
 				tx2.Create(&trans) 
 				return nil
-			})
+			}) 
 		}
 	
 		tx.Transaction(func(tx3 *gorm.DB) error { 

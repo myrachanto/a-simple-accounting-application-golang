@@ -33,6 +33,17 @@ func (controller salesController) Purchases(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, createdsales)
 }
+func (controller salesController) Pl(c echo.Context) error {
+		
+	dated := c.QueryParam("dated")
+	searchq2 := c.QueryParam("searchq2")
+	searchq3 := c.QueryParam("searchq3")
+	createdsales, err1 := service.Salesservice.Pl(dated,searchq2,searchq3)
+	if err1 != nil {
+		return c.JSON(err1.Code, err1)
+	}
+	return c.JSON(http.StatusOK, createdsales)
+}
 // func (controller salesController) Customer(c echo.Context) error {
 		
 // 	dated := c.QueryParam("dated")

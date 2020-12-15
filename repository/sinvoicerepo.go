@@ -92,7 +92,7 @@ func (sInvoiceRepo sInvoicerepo) Create(sInvoice *model.SInvoice) (string, *http
 				tx2.Create(&trans)
 				return nil
 			})
-		}
+		} 
 
 		tx.Transaction(func(tx3 *gorm.DB) error {
 
@@ -105,7 +105,7 @@ func (sInvoiceRepo sInvoicerepo) Create(sInvoice *model.SInvoice) (string, *http
 			remaining := product.Quantity + c.Quantity
 			tx.Transaction(func(tx4 *gorm.DB) error {
 				fmt.Println("level 4")
-				tx4.Model(&product).Where("name = ?", product.Name).Update("quantity", remaining)
+				tx4.Model(&product).Where("name = ?", product.Name).Updates(model.Product{Quantity: remaining, Bprice: c.BPrice})
 				return nil
 			})
 		}

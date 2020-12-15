@@ -19,11 +19,7 @@ type salesrepo struct{}
 ////////////TODO user id///////////
 /////////////////////////////////////////
 func (salesRepo salesrepo) View(dated,searchq2,searchq3 string)(*model.Sales, *httperors.HttpError) {
-	sales := model.Sales{}
-	invoices,err5 := Invoicerepo.All()
-	if err5 != nil {
-		return nil, err5
-	}
+sales := model.Sales{}
 	paidinvoices,err4 := Invoicerepo.PaidInvoices(dated,searchq2,searchq3)
 	if err4 != nil {
 		return nil, err4
@@ -36,16 +32,18 @@ func (salesRepo salesrepo) View(dated,searchq2,searchq3 string)(*model.Sales, *h
 	if err2 != nil {
 		return nil, err2
 	}
-
-	var to float64 = 0
-	var tax float64 = 0
-	var discount float64 = 0
-	for _, s := range invoices {
-		to += s.Total
-		tax += s.Tax
-		discount += s.Discount
+	sal,err5 := Transactionrepo.Sales(dated,searchq2,searchq3)
+	if err5 != nil {
+		return nil, err5
 	}
-	gp := to - tax-discount
+	var sale float64 = 0 
+	var cost float64 = 0
+	for _,i := range sal {
+		sale += i.Total
+		cost += i.Cost
+	}
+	
+	gp := sale - cost
 
 	var dt float64 = 0
 	for _, d := range debts {
@@ -57,7 +55,7 @@ func (salesRepo salesrepo) View(dated,searchq2,searchq3 string)(*model.Sales, *h
 	}
 	////sales/////////////
 	sales.Sales.Name = "Sales"
-	sales.Sales.Total = to
+	sales.Sales.Total = sale
 	sales.Sales.Description = "Total sales"
 	sales.Sales.Icon = ""
 	////grossprofit/////////////
@@ -140,12 +138,67 @@ func (salesRepo salesrepo) Purchases(dated,searchq2,searchq3 string)(*model.Purc
 	fmt.Println(transactions)
 	purchases.STransactions = transactions
 	////debtTransaction/////////////
-	purchases.CreditTransaction = debts
+	purchases.CreditTransaction = debts 
 	return &purchases, nil
 }
+func (salesRepo salesrepo) PL(dated,searchq2,searchq3 string)(*model.Pl, *httperors.HttpError) {
+	sales,err5 := Transactionrepo.Sales(dated,searchq2,searchq3)
+	if err5 != nil {
+		return nil, err5
+	}
+	var sale float64 = 0 
+	var cost float64 = 0
+	for _,i := range sales {
+		sale += i.Total
+		cost += i.Cost
+	}
+	directex,er := Expencetrasanrepo.Alldirect(dated,searchq2,searchq3)
+	if er != nil {
+		return nil, er
+	}
+	var dex float64 = 0
+	for _,de := range directex {
+		dex += de.Amount
+	}
 
+	indirectex,er1 := Expencetrasanrepo.Allindirect(dated,searchq2,searchq3)
+	if er1 != nil {
+		return nil, er1
+	}
+	var idex float64 = 0
+	for _,ide := range indirectex {
+		idex += ide.Amount
+	}
+	otherex,er3 := Expencetrasanrepo.Allother(dated,searchq2,searchq3)
+	if er3 != nil {
+		return nil, er3
+	}
+	var oex float64 = 0
+	for _,oe := range otherex {
+		oex += oe.Amount
+	}
+	if dated == "custom" {
+		dato := searchq2 +" to "+ searchq3
+		return &model.Pl{
+			Sales:sale,
+			Costofsale:cost,
+			DirectExpence:dex,
+			InDirectExpence:idex,
+			OtherExpence:oex,
+			Dated: dato,
+		}, nil
+	}
+	return &model.Pl{
+		Sales:sale,
+		Costofsale:cost,
+		DirectExpence:dex,
+		InDirectExpence:idex,
+		OtherExpence:oex,
+		Dated: dated,
+	}, nil
+}
 // func (salesRepo salesrepo) Purchases(dated,searchq2,searchq3 string)(*model.Purchases, *httperors.HttpError) {
-
+ 
 // 	return &purchases, nil
 // }
 // func (salesRepo salesrepo) Email() (*model.Email, *httperors.HttpError) {

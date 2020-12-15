@@ -14,7 +14,7 @@ type Product struct {
 	Category string ` json:"category"`
 	Majorcategory string ` json:"majorcategory"`
 	Picture string `json:"picture"`
-	BPrice float64 `json:"bprice"`
+	Bprice float64 `json:"bprice"`
 	SPrice float64 `json:"sprice"`
 	Usercode string `json:"usercode"`
 	Productcode string `json:"productcode"`

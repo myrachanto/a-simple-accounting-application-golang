@@ -152,10 +152,15 @@ func (customerRepo customerrepo) GetOne(id int,dated,searchq2,searchq3 string) (
 	if er != nil {
 		return nil, er
 	}
+	receipts, er3 := Receiptrepo.AllSearchCustomer(customer.Customercode,dated,searchq2,searchq3)
+	if er3 != nil {
+		return nil, er3
+	}  
 	return &model.Customerdetails{
 		Customer: customer,
 		Invoices: invoices,
 		Credits: credits,
+		Receipts: receipts,
 	}, nil
 }
 func (customerRepo customerrepo) GetOptions()([]model.Customer, *httperors.HttpError){
