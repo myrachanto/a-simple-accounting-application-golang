@@ -25,6 +25,7 @@ type Payment struct {
 	Amount float64 `json:"amount"`
 	Status string `json:"status"`
 	Allocated string `json:"allocated"`
+	Direct string `json:"direct"`
 	gorm.Model 
 }
 //PaymentReport ...

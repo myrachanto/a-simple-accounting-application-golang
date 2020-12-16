@@ -83,7 +83,13 @@ func (cartRepo cartrepo) Create(cart *model.Cart) (string, *httperors.HttpError)
 		return "", httperors.NewNotFoundError("please that price wont do its less than buying price")
 	}
 	cart.CostPrice = product.Bprice
-	cart.Cost = cart.Quantity * product.Bprice
+
+	costamount := cart.Quantity * product.Bprice
+	costtaxamount := tx/100 * costamount
+	costdiscountamount := dis/100 * costamount
+	// fmt.Println(grossamount,taxamount,discountamount)
+	// fmt.Println(cart)
+	cart.Cost  = costamount - costdiscountamount + costtaxamount
 	cart.Productcode = product.Productcode
 	GormDB.Create(&cart)
 	IndexRepo.DbClose(GormDB)

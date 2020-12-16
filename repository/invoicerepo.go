@@ -32,7 +32,7 @@ func (invoiceRepo invoicerepo) Create(invoice *model.Invoice) (string, *httperor
 	var tex float64 = t.Total + ep
 	fmt.Println(tex, t.Total, ep)
 	invoice.Expences = ep
-	invoice.Total = tex
+	invoice.Total = tex 
 	invoice.Balance = tex
 	// cart := Cartrepo.Getcustomerwithcode(code)
 	// invoice.Customername = cart.Customername

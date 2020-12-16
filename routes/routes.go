@@ -185,6 +185,7 @@ func StoreAPI(){
 	///////////////////finance module///////////////////////////////////////
 	///////////payments/////////////////////////////////////////////////////
 	JWTgroup.POST("payments", controllers.PaymentController.Create)
+	// JWTgroup.POST("payments/expence", controllers.PaymentController.CreateExpence)
 	JWTgroup.GET("payments/view", controllers.PaymentController.View)
 	JWTgroup.GET("payments/viewexpence", controllers.PaymentController.ViewExpence)
 	JWTgroup.GET("payments", controllers.PaymentController.GetAll)
@@ -294,6 +295,8 @@ func StoreAPI(){
 	JWTgroup.GET("sales/dashboard", controllers.SalesController.View)
 	JWTgroup.GET("purchases/dashboard", controllers.SalesController.Purchases)
 	JWTgroup.GET("profitandloss", controllers.SalesController.Pl)
+	JWTgroup.GET("customer/statement/:code", controllers.SalesController.Customerstement)
+	JWTgroup.GET("supplier/statement/:code", controllers.SalesController.Supplierstement)
 	// JWTgroup.GET("customer/statement", controllers.SalesController.Customer)
 	// JWTgroup.GET("email/create", controllers.DashboardController.Email)
 

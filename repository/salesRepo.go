@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"time"
 	// "log"
 	// "os"
 	// "github.com/joho/godotenv"
@@ -193,9 +194,135 @@ func (salesRepo salesrepo) PL(dated,searchq2,searchq3 string)(*model.Pl, *httper
 		Costofsale:cost,
 		DirectExpence:dex,
 		InDirectExpence:idex,
-		OtherExpence:oex,
+		OtherExpence:oex, 
 		Dated: dated,
 	}, nil
+}
+
+func (salesRepo salesrepo) Supplierstement(code,dated,searchq2,searchq3 string)(*model.Supplierstates, *httperors.HttpError) {
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	results,err := Salesrepo.AllsearchSupplier(code,dated,searchq2,searchq3)
+	if err != nil {
+		return nil, err
+	}
+
+	supplier := Supplierrepo.Getsupplierwithcode(code)
+
+	IndexRepo.DbClose(GormDB)
+	return &model.Supplierstates{
+		Statements:results,
+		Supplier:supplier,
+		Datos:dated,
+		Query1:searchq2,
+		Query2:searchq3,
+	}, nil 
+}
+func (salesRepo salesrepo) Customerstement(code,dated,searchq2,searchq3 string)(*model.Customerstates, *httperors.HttpError) {
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+	results,err := Salesrepo.Allsearch(code,dated,searchq2,searchq3)
+	if err != nil {
+		return nil, err
+	}
+
+	customer := Customerrepo.GetcustomerwithCode(code)
+
+	IndexRepo.DbClose(GormDB)
+	return &model.Customerstates{
+		Statements:results,
+		Customer:customer,
+		Datos:dated,
+		Query1:searchq2,
+		Query2:searchq3,
+	}, nil 
+}
+
+func (salesRepo salesrepo) AllsearchSupplier(code,dated,searchq2,searchq3 string) (results []model.CustomerState, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Table("s_invoices").Select("s_invoices.description, s_invoices.tax, s_invoices.discount, s_invoices.total, s_invoices.balance,s_invoices.dated, payments.amount, payments.status,payments.created_at").Joins("left join payments on payments.itemcode = s_invoices.suppliercode").Where("s_invoices.updated_at > ? AND s_invoices.suppliercode = ?", d, code).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Table("s_invoices").Select("s_invoices.description, s_invoices.tax, s_invoices.discount, s_invoices.total,s_invoices.balance,s_invoices.dated, payments.amount, payments.status,payments.created_at").Joins("left join payments on payments.itemcode = s_invoices.suppliercode").Where("s_invoices.updated_at > ? AND s_invoices.suppliercode = ?", d, code).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Table("s_invoices").Select("s_invoices.description, s_invoices.tax, s_invoices.discount, s_invoices.total,s_invoices.balance,s_invoices.dated, payments.amount, payments.status,payments.created_at").Joins("left join payments on payments.itemcode = s_invoices.suppliercode").Where("s_invoices.updated_at > ? AND s_invoices.suppliercode = ?", d, code).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Table("s_invoices").Select("s_invoices.description, s_invoices.tax, s_invoices.discount, s_invoices.total,s_invoices.balance,s_invoices.dated, payments.amount, payments.status,payments.created_at").Joins("left join payments on payments.itemcode = s_invoices.suppliercode").Where("s_invoices.updated_at > ? AND s_invoices.suppliercode = ?", d, code).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3) 
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Table("s_invoices").Select("s_invoices.description, s_invoices.tax, s_invoices.discount, s_invoices.total,s_invoices.balance,s_invoices.dated, payments.amount, payments.status,payments.created_at").Joins("left join payments on payments.itemcode = s_invoices.suppliercode").Where("s_invoices.suppliercode = ? AND s_invoices.updated_at BETWEEN ? AND ?",code, start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
+}
+func (salesRepo salesrepo) Allsearch(code,dated,searchq2,searchq3 string) (results []model.CustomerState, r *httperors.HttpError) {
+
+	now := time.Now()
+	GormDB, err1 := IndexRepo.Getconnected()
+	if err1 != nil {
+		return nil, err1
+	}
+
+	if dated != "custom"{
+		if dated == "In the last 24hrs"{
+			d := now.AddDate(0, 0, -1)
+			GormDB.Table("invoices").Select("invoices.description, invoices.tax, invoices.discount, invoices.total, invoices.balance,invoices.dated, receipts.amount, receipts.status,receipts.created_at").Joins("left join receipts on receipts.customercode = invoices.customercode").Where("invoices.updated_at > ? AND invoices.customercode = ?", d, code).Find(&results)
+		}
+		if dated == "In the last 7days"{
+			d := now.AddDate(0, 0, -7)
+			GormDB.Table("invoices").Select("invoices.description, invoices.tax, invoices.discount, invoices.total,invoices.balance,invoices.dated, receipts.amount, receipts.status,receipts.created_at").Joins("left join receipts on receipts.customercode = invoices.customercode").Where("invoices.updated_at > ? AND invoices.customercode = ?", d, code).Find(&results)
+		}
+		if dated == "In the last 15day"{
+			d := now.AddDate(0, 0, -15)
+			GormDB.Table("invoices").Select("invoices.description, invoices.tax, invoices.discount, invoices.total,invoices.balance,invoices.dated, receipts.amount, receipts.status,receipts.created_at").Joins("left join receipts on receipts.customercode = invoices.customercode").Where("invoices.updated_at > ? AND invoices.customercode = ?", d, code).Find(&results)
+		}
+		if dated == "In the last 30days"{
+			d := now.AddDate(0, 0, -30)
+			GormDB.Table("invoices").Select("invoices.description, invoices.tax, invoices.discount, invoices.total,invoices.balance,invoices.dated, receipts.amount, receipts.status,receipts.created_at").Joins("left join receipts on receipts.customercode = invoices.customercode").Where("invoices.updated_at > ? AND invoices.customercode = ?", d, code).Find(&results)
+		}
+	}
+	if dated == "custom"{
+		start,err := time.Parse(Layout,searchq2)
+		if err != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		end,err1 := time.Parse(Layout,searchq3) 
+		if err1 != nil {
+			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
+		}
+		GormDB.Table("invoices").Select("invoices.description, invoices.tax, invoices.discount, invoices.total,invoices.balance,invoices.dated, receipts.amount, receipts.status,receipts.created_at").Joins("left join receipts on receipts.customercode = invoices.customercode").Where("invoices.customercode = ? AND invoices.updated_at BETWEEN ? AND ?",code, start, end).Find(&results)
+	}
+	IndexRepo.DbClose(GormDB)
+	return results, nil
+
 }
 // func (salesRepo salesrepo) Purchases(dated,searchq2,searchq3 string)(*model.Purchases, *httperors.HttpError) {
  

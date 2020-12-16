@@ -28,11 +28,11 @@ Asset []Asset `json:"assets"`
 }
 //ExpencesView ...
 type ExpencesView struct {
-	Expences []Expencetrasan `json:"expences"`
+	Expences []Payment `json:"expences"`
 	Totalexpences SalesModule `json:"total"`
 	Directexpences SalesModule `json:"directexpences"`
 	InDirectexpences SalesModule `json:"indirectexpences"`
-	Other SalesModule `json:"others"`
+	// Other SalesModule `json:"others"`
 }
 //Validate ...
 func (expence Expencetrasan) Validate() *httperors.HttpError{ 

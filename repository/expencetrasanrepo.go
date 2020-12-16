@@ -113,10 +113,10 @@ func (expencetrasanRepo expencetrasanrepo) ViewReport(dated,searchq2,searchq3 st
 	if err3 != nil {
 		return nil, err3
 	}
-	other, err4 := Expencetrasanrepo.Allother(dated,searchq2,searchq3)
-	if err4 != nil {
-		return nil, err4
-	}
+	// other, err4 := Expencetrasanrepo.Allother(dated,searchq2,searchq3)
+	// if err4 != nil {
+	// 	return nil, err4
+	// }
 	var tes float64 = 0
 	for _,te := range expences{
 		tes += te.Amount
@@ -129,10 +129,10 @@ func (expencetrasanRepo expencetrasanrepo) ViewReport(dated,searchq2,searchq3 st
 	for _,idte := range idexpences{
 		idtes += idte.Amount
 	}
-	var o float64 = 0
-	for _,ot := range other{
-		o += ot.Amount
-	}
+	// var o float64 = 0
+	// for _,ot := range other{
+	// 	o += ot.Amount
+	// }
 	z := model.ExpencesView{}
 	z.Expences = expences
 	z.Totalexpences.Name = "Total expences"
@@ -147,36 +147,36 @@ func (expencetrasanRepo expencetrasanrepo) ViewReport(dated,searchq2,searchq3 st
 	z.InDirectexpences.Total = idtes
 	z.InDirectexpences.Description = "Total InDirect expences incurred"
 	////////////////////////////////////////////////////////////
-	z.Other.Name = "Other expences"
-	z.Other.Total = o
-	z.Other.Description = "Total Other expences incurred"
+	// z.Other.Name = "Other expences"
+	// z.Other.Total = o
+	// z.Other.Description = "Total Other expences incurred"
 	
 	return &z, nil
 }
 
-func (expencetrasanRepo expencetrasanrepo) AllSearch(dated,searchq2,searchq3 string) (results []model.Expencetrasan, r *httperors.HttpError) {
+func (expencetrasanRepo expencetrasanrepo) AllSearch(dated,searchq2,searchq3 string) (results []model.Payment, r *httperors.HttpError) {
 
 	now := time.Now()
 	GormDB, err1 := IndexRepo.Getconnected()
 	if err1 != nil {
 		return nil, err1
 	}
-	if dated != "custom"{ 
+	if dated != "custom"{  
 		if dated == "In the last 24hrs"{
 			d := now.AddDate(0, 0, -1)
-			GormDB.Where("updated_at > ?", d).Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ?", d, "other").Find(&results)
 		}
 		if dated == "In the last 7days"{
 			d := now.AddDate(0, 0, -7)
-			GormDB.Where("updated_at > ?",d).Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ?",d, "other").Find(&results)
 		}
 		if dated == "In the last 15day"{
 			d := now.AddDate(0, 0, -15)
-			GormDB.Where("updated_at > ?",d).Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ?",d, "other").Find(&results)
 		}
 		if dated == "In the last 30days"{
 			d := now.AddDate(0, 0, -30)
-			GormDB.Where("updated_at > ?",d).Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ?",d, "other").Find(&results)
 		}
 	}
 	if dated == "custom"{
@@ -188,13 +188,13 @@ func (expencetrasanRepo expencetrasanrepo) AllSearch(dated,searchq2,searchq3 str
 		if err1 != nil {
 			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
 		}
-		GormDB.Where("updated_at BETWEEN ? AND ?",start, end).Find(&results)
+		GormDB.Where("mode = ? AND updated_at BETWEEN ? AND ?", "other",start, end).Find(&results)
 	}
 	IndexRepo.DbClose(GormDB)
 	return results, nil
 
 }
-func (expencetrasanRepo expencetrasanrepo) Alldirect(dated,searchq2,searchq3 string) (results []model.Expencetrasan, r *httperors.HttpError) {
+func (expencetrasanRepo expencetrasanrepo) Alldirect(dated,searchq2,searchq3 string) (results []model.Payment, r *httperors.HttpError) {
 
 	now := time.Now()
 	GormDB, err1 := IndexRepo.Getconnected()
@@ -205,19 +205,19 @@ func (expencetrasanRepo expencetrasanrepo) Alldirect(dated,searchq2,searchq3 str
 	if dated != "custom"{
 		if dated == "In the last 24hrs"{
 			d := now.AddDate(0, 0, -1)
-			GormDB.Where("updated_at > ? AND type = ?", d,"direct").Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ? AND direct = ?", d,"other","direct").Find(&results)
 		}
 		if dated == "In the last 7days"{
 			d := now.AddDate(0, 0, -7)
-			GormDB.Where("updated_at > ? AND type = ?", d,"direct").Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ? AND direct = ?", d,"other","direct").Find(&results)
 		}
 		if dated == "In the last 15day"{
 			d := now.AddDate(0, 0, -15)
-			GormDB.Where("updated_at > ? AND type = ?", d,"direct").Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ? AND direct = ?", d,"other","direct").Find(&results)
 		}
 		if dated == "In the last 30days"{
 			d := now.AddDate(0, 0, -30)
-			GormDB.Where("updated_at > ? AND type = ?", d,"direct").Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ? AND direct = ?", d,"other","direct").Find(&results)
 		}
 	}
 	if dated == "custom"{
@@ -229,13 +229,13 @@ func (expencetrasanRepo expencetrasanrepo) Alldirect(dated,searchq2,searchq3 str
 		if err1 != nil {
 			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
 		}
-		GormDB.Where("type = ? AND updated_at BETWEEN ? AND ?","direct", start, end).Find(&results)
+		GormDB.Where("type = ? AND mode = ?  AND updated_at BETWEEN ? AND ?","direct","other", start, end).Find(&results)
 	}
 	IndexRepo.DbClose(GormDB)
 	return results, nil
 
 }
-func (expencetrasanRepo expencetrasanrepo) Allindirect(dated,searchq2,searchq3 string) (results []model.Expencetrasan, r *httperors.HttpError) {
+func (expencetrasanRepo expencetrasanrepo) Allindirect(dated,searchq2,searchq3 string) (results []model.Payment, r *httperors.HttpError) {
 
 	now := time.Now()
 	GormDB, err1 := IndexRepo.Getconnected()
@@ -246,19 +246,19 @@ func (expencetrasanRepo expencetrasanrepo) Allindirect(dated,searchq2,searchq3 s
 	if dated != "custom"{
 		if dated == "In the last 24hrs"{
 			d := now.AddDate(0, 0, -1)
-			GormDB.Where("updated_at > ? AND type = ?", d,"indirect").Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ? AND direct = ?", d,"other","inderect").Find(&results)
 		}
 		if dated == "In the last 7days"{
 			d := now.AddDate(0, 0, -7)
-			GormDB.Where("updated_at > ? AND type = ?", d,"indirect").Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ? AND direct = ?", d,"other","inderect").Find(&results)
 		}
 		if dated == "In the last 15day"{
 			d := now.AddDate(0, 0, -15)
-			GormDB.Where("updated_at > ? AND type = ?", d,"indirect").Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ? AND direct = ?", d,"other","inderect").Find(&results)
 		}
 		if dated == "In the last 30days"{
 			d := now.AddDate(0, 0, -30)
-			GormDB.Where("updated_at > ? AND type = ?", d,"indirect").Find(&results)
+			GormDB.Where("updated_at > ? AND mode = ? AND direct = ?", d,"other","inderect").Find(&results)
 		}
 	}
 	if dated == "custom"{
@@ -270,7 +270,7 @@ func (expencetrasanRepo expencetrasanrepo) Allindirect(dated,searchq2,searchq3 s
 		if err1 != nil {
 			return nil, httperors.NewNotFoundError("Something went wrong parsing date1!")
 		}
-		GormDB.Where("type = ? AND updated_at BETWEEN ? AND ?","indirect", start, end).Find(&results)
+		GormDB.Where("type = ? AND mode = ? AND updated_at BETWEEN ? AND ?","inderect","other" ,start, end).Find(&results)
 	}
 	IndexRepo.DbClose(GormDB)
 	return results, nil

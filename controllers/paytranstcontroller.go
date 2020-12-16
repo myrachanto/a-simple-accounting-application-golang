@@ -32,8 +32,13 @@ func (controller payrectrasanController) Create(c echo.Context) error {
 func (controller payrectrasanController) Updatepayments(c echo.Context) error {
 		
 	code := c.FormValue("code")
-	status := c.FormValue("status")
-	updatedcart, problem := service.PayrectrasanService.Updatepayments(code,status)
+	status := c.FormValue("status") 
+	amount, err := strconv.ParseFloat(c.FormValue("amount"), 64)
+	if err != nil {
+		httperror := httperors.NewBadRequestError("Invalid selling price")
+		return c.JSON(httperror.Code, httperror)
+	}
+	updatedcart, problem := service.PayrectrasanService.Updatepayments(amount,code,status)
 	if problem != nil {
 		return c.JSON(problem.Code, problem)
 	}

@@ -31,7 +31,7 @@ func (paymentRepo paymentrepo) Create(payment *model.Payment) (*model.Payment, *
 		payment.Mode = "invoice"
 		paymentform := model.Paymentform{}
 		p := model.Paymentform{}
-		if (payment.Status == "cleared"){
+		if (payment.Status == "cleared"){ 
 			////////////begin transaction/////////////////////
 		GormDB.Transaction(func(tx *gorm.DB) error {
 
@@ -54,6 +54,7 @@ func (paymentRepo paymentrepo) Create(payment *model.Payment) (*model.Payment, *
 	if ok {
 		sup := Expencetrasanrepo.ExpenceExistByNameGet(payment.ItemName)
 		itemcode = sup.Code
+		fmt.Println(sup)
 		payment.Itemcode = itemcode
 		payment.Allocated = "notallocated"
 		payment.Mode = "other"
@@ -105,7 +106,7 @@ func (paymentRepo paymentrepo) GetOne(id int) (*model.Payment, *httperors.HttpEr
 func (paymentRepo paymentrepo) AddReceiptTrans(clientcode,invoicecode,usercode,receiptcode string ,amount float64) (string, *httperors.HttpError) {
 	ok := Supplierrepo.SupplierExistbycode(clientcode)
 	if !ok {
-		return "", httperors.NewNotFoundError("That customer does not exist")
+		return "", httperors.NewNotFoundError("That Supplier does not exist")
 	}
 	supplier := Supplierrepo.Getsupplierwithcode(clientcode)
 	ok = SInvoicerepo.SInvoiceExistByCode(invoicecode)
@@ -114,11 +115,7 @@ func (paymentRepo paymentrepo) AddReceiptTrans(clientcode,invoicecode,usercode,r
 	}
 	
 	invo := SInvoicerepo.GetInvoicebyCode(invoicecode)
-	stats := ""
-	if invo.Total == amount {
-		stats = "fullypaid"
-	}
-	stats = "partialpaid"
+	
 	ok = Paymentrepo.ReceiptExistByCode(receiptcode)
 	if !ok {
 		return "", httperors.NewNotFoundError("That receipt does not exist")
@@ -128,6 +125,54 @@ func (paymentRepo paymentrepo) AddReceiptTrans(clientcode,invoicecode,usercode,r
 	if err1 != nil {
 		return "", err1
 	}
+	stats := ""
+	if invo.Total == amount {
+		stats = "fullypaid"
+		// fully paid code
+		transact := model.Payrectrasan{}
+		transact.Name = supplier.Name
+		transact.Title = "Payments"
+		transact.Description = "Payments to  Supplier"
+		transact.CLientcode = clientcode
+		transact.Invoicecode = invoicecode
+		transact.Amount = amount
+		transact.Usercode = usercode
+		transact.Paymentform = payment.Type
+		transact.Status = stats
+		paymentf := Paymentformrepo.GetPaymantformbyname(payment.Type)
+
+		invoic := model.SInvoice{}
+		paymentform := model.Paymentform{}
+		reciep := model.Payment{}
+		////////////begin transaction/////////////////////
+		GormDB.Transaction(func(tx *gorm.DB) error {
+			
+			fmt.Println("level 1")
+			tx.Create(&transact)
+
+		
+			tx.Transaction(func(tx2 *gorm.DB) error { 
+			
+				fmt.Println("level 2")
+				bal := invo.Total - amount
+				tx2.Model(&invoic).Where("code = ?", invoicecode).Updates(model.SInvoice{Paidstatus: stats, AllPaidstatus: stats, AmountPaid: amount, Balance:bal})
+				return nil
+			})
+				remaining := paymentf.Amount - amount
+				tx.Transaction(func(tx4 *gorm.DB) error {
+					fmt.Println("level 4")
+					tx4.Model(&paymentform).Where("paymentcode = ?", paymentf.Paymentcode).Update("amount",remaining)
+					return nil
+				})
+				tx.Transaction(func(tx4 *gorm.DB) error {
+					fmt.Println("level 4")
+					tx4.Model(&reciep).Where("code = ?", receiptcode).Update("allocated","allocated")
+					return nil
+				})
+				return nil
+			})
+	}
+	stats = "partialpaid"
 	transact := model.Payrectrasan{}
 	transact.Name = supplier.Name
 	transact.Title = "Payments"
@@ -245,7 +290,7 @@ func (paymentRepo paymentrepo) ViewCleared() ([]model.Payment, *httperors.HttpEr
 	}
 	payment := model.Payment{}
 	cleared := []model.Payment{}
-	GormDB.Model(&payment).Where("status = ? AND allocated = ? AND mode = ?", "cleared", "notallocated", "invoice").Find(&cleared)
+	GormDB.Model(&payment).Where("status = ? AND mode = ?", "cleared", "invoice").Find(&cleared)
 	IndexRepo.DbClose(GormDB)
 	return cleared, nil
 
@@ -257,6 +302,7 @@ func (paymentRepo paymentrepo) ViewClearedExpence() ([]model.Payment, *httperors
 	}
 	payment := model.Payment{}
 	cleared := []model.Payment{}
+	// get all unallocated
 	GormDB.Model(&payment).Where("allocated = ? AND mode = ?", "notallocated", "other").Find(&cleared)
 	IndexRepo.DbClose(GormDB)
 	return cleared, nil

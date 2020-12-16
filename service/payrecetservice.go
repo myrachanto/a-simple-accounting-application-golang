@@ -32,8 +32,8 @@ func (service payrectrasanService) GetOne(id int) (*model.Payrectrasan, *httpero
 	return payrectrasan, nil
 }
 
-func (service payrectrasanService) Updatepayments( code,status string) (string, *httperors.HttpError) {
-	cart, err1 := r.Payrectrasanrepo.Updatepayments(code,status)
+func (service payrectrasanService) Updatepayments(amount float64, code,status string) (string, *httperors.HttpError) {
+	cart, err1 := r.Payrectrasanrepo.Updatepayments(amount, code,status)
 	if err1 != nil {
 		return "", err1
 	}

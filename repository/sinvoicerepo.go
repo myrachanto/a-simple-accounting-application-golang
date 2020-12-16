@@ -49,6 +49,7 @@ func (sInvoiceRepo sInvoicerepo) Create(sInvoice *model.SInvoice) (string, *http
 	sInvoice.Tax = t.Tax
 	sInvoice.Subtotal = t.Subtotal
 	sInvoice.Title = "Purchases"
+	sInvoice.Balance = tex
 	sInvoice.Cn = false
 	sInvoice.Status = "invoice"
 	sInvoice.Paidstatus = "notpaid"

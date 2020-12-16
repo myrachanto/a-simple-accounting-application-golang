@@ -41,6 +41,23 @@ func (service salesservice) Pl(dated,searchq2,searchq3 string) (*model.Pl, *http
 	 return sales, nil
 
 }
+func (service salesservice) Supplierstement(code,dated,searchq2,searchq3 string) (*model.Supplierstates, *httperors.HttpError) {
+	sales, err1 := r.Salesrepo.Supplierstement(code,dated,searchq2,searchq3)
+	if err1 != nil {
+		return nil, err1
+	}
+	 return sales, nil
+
+}
+
+func (service salesservice) Customerstement(code,dated,searchq2,searchq3 string) (*model.Customerstates, *httperors.HttpError) {
+	sales, err1 := r.Salesrepo.Customerstement(code,dated,searchq2,searchq3)
+	if err1 != nil {
+		return nil, err1
+	}
+	 return sales, nil
+
+}
 
 // func (service salesservice) Customer(dated,searchq2,searchq3 string) (*model.Purchases, *httperors.HttpError) {
 // 	sales, err1 := r.Salesrepo.Customer(dated,searchq2,searchq3)

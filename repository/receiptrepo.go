@@ -28,7 +28,7 @@ func (receiptRepo receiptrepo) Create(receipt *model.Receipt) (*model.Receipt, *
 	p := model.Paymentform{}
 	if (receipt.Status == "cleared"){
 		////////////begin transaction/////////////////////
-	GormDB.Transaction(func(tx *gorm.DB) error {
+	GormDB.Transaction(func(tx *gorm.DB) error { 
 
 		fmt.Println("level 1")
 		tx.Create(&receipt)

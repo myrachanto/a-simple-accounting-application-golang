@@ -61,7 +61,8 @@ func (payrectrasanRepo payrectrasanrepo) GetOne(id int) (*model.Payrectrasan, *h
 	return &payrectrasan, nil
 }
 
-func (payrectrasanRepo payrectrasanrepo) Updatepayments(code,status string) (string, *httperors.HttpError) {
+func (payrectrasanRepo payrectrasanrepo) Updatepayments(amount float64, code,status string) (string, *httperors.HttpError) {
+	fmt.Println(code, "--------------------------------")
 	ok := Paymentrepo.paymentExistByCode(code)
 	if ok == false {
 		return "", httperors.NewNotFoundError("That payment does not exist!")
@@ -74,18 +75,16 @@ func (payrectrasanRepo payrectrasanrepo) Updatepayments(code,status string) (str
 	fmt.Println(status, code) 
 	paymentform := model.Paymentform{}
 	p := model.Paymentform{}
-	if (r.Status == "cleared"){
-		////////////begin transaction/////////////////////
+	if (status == "allocate"){
+		////////////begin transaction///////////////////// 
 	GormDB.Transaction(func(tx *gorm.DB) error {
 
-		fmt.Println("level 1")
-		tx.Model(&r).Where("itemcode = ?", code).Update("status",status)
-		tx.Model(&r).Where("allocated = ?", "allocated").Update("status",status)
+		fmt.Println("level 1 -------------------------------------------")
+		tx.Model(&r).Where("code = ?", code).Updates(model.Payment{Allocated: "allocated", Status: "cleared"})
 
-		tx.Transaction(func(tx2 *gorm.DB) error {
+		tx.Transaction(func(tx2 *gorm.DB) error { 
 			fmt.Println("level 2")
-			tx2.Model(&paymentform).Where("name = ?", r.Paymentform).First(&p)
-			updatedamount := p.Amount - r.Amount 
+			updatedamount := p.Amount - amount 
 			tx2.Model(&paymentform).Where("name = ?", r.Paymentform).Update("amount", updatedamount)
 			return nil
 		})

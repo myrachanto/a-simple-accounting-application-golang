@@ -18,12 +18,14 @@ type paymentController struct{ }
 /////////controllers/////////////////
 func (controller paymentController) Create(c echo.Context) error {
 	payment := &model.Payment{}
-	payment.ItemName = c.FormValue("suppliername")
+	payment.ItemName = c.FormValue("name")
 	payment.Status = c.FormValue("status")
 	payment.Description = c.FormValue("description")
 	payment.Type = c.FormValue("type")
 	payment.Code = c.FormValue("code")
 	payment.ChequeNo = c.FormValue("chequeno")
+	payment.Usercode = c.FormValue("usercode")
+	payment.Direct = c.FormValue("direct")
 	ex := c.FormValue("expirydate")
 	d := c.FormValue("clearancedate")
 	fmt.Println(d)
@@ -52,7 +54,6 @@ func (controller paymentController) Create(c echo.Context) error {
 		}
 	return c.JSON(http.StatusCreated, createdpayment)
 }
-
 func (controller paymentController) ViewReport(c echo.Context) error {
 	dated := c.QueryParam("dated")
 	searchq2 := c.QueryParam("searchq2")
@@ -171,11 +172,11 @@ func (controller paymentController) ViewInvoices(c echo.Context) error {
 }
 func (controller paymentController) AddPaymentsTrans(c echo.Context) error {
 		
-	clientcode := c.FormValue("suppliercode")
+	clientcode := c.FormValue("itemcode")
 	icode := c.FormValue("invoicecode")
 	usercode := c.FormValue("usercode")
 	pcode := c.FormValue("paymentcode")
-	amount, err := strconv.ParseFloat(c.FormValue("amount"), 64)
+	amount, err := strconv.ParseFloat(c.FormValue("amount"), 64) 
 	if err != nil {
 		httperror := httperors.NewBadRequestError("Invalid amount")
 		return c.JSON(httperror.Code, httperror)
